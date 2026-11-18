@@ -1,0 +1,41 @@
+# Trunk-based: main siempre debe estar en verde.
+# Corre en cada Pull Request y en cada push a main.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Revisar tipos
+        run: npx tsc --noEmit
+
+      - name: Lint (incluye complejidad ciclomática máxima de 10)
+        run: npx expo lint
+
+      - name: Pruebas de caja blanca con cobertura
+        run: npx jest --ci --coverage
+
+      - name: Guardar reporte de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura
+          path: coverage/
