@@ -7,8 +7,13 @@ método de verificación, el responsable y el resultado.
 
 > **Fuente:** SRS v1.0, secciones 4 y 5 (criterios de aceptación), 9 (matriz de
 > trazabilidad inicial) y 10 (estrategia de verificación y aceptación).
-> **Pendiente:** completar con el Anexo B del plan de trabajo del equipo (flujos F1–F10
-> de T-27 y revisiones S1–S11 de T-28) cuando esté disponible.
+> **Integración (T-27):** los flujos de Alexis, F1 (cuenta), F6 (hospedaje), F9 (perfil) y
+> F10 (administración), se ejecutan y registran en
+> [`registro-integracion.md`](registro-integracion.md). Su resultado se pasa aquí a la
+> columna ✅/❌.
+>
+> **Pendiente:** completar con el Anexo B del plan de trabajo del equipo (los demás flujos
+> F2–F8 y las revisiones S1–S11 de T-28) cuando esté disponible.
 
 ## Cómo se usa
 
@@ -16,7 +21,8 @@ método de verificación, el responsable y el resultado.
   indica pruebas planeadas que todavía no existen.
 - **Prueba manual:** el criterio de aceptación del SRS, que se ejecuta en el celular.
 - **✅/❌:** resultado de la prueba manual en la integración (T-27). Por cada ❌ se abre
-  un issue con el ID del requisito.
+  un issue con el ID del requisito. Los pasos de F1, F6, F9 y F10 y la regla para marcar
+  cada requisito están en [`registro-integracion.md`](registro-integracion.md).
 - **Piloto:** resultado observado en la prueba piloto (T-32).
 - **Responsable:** se toma del encabezado de cada pantalla en `src/app/`. *Por asignar*
   significa que ningún archivo lo indica todavía.
