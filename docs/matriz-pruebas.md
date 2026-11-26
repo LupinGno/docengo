@@ -15,6 +15,13 @@ método de verificación, el responsable y el resultado.
 > **Seguridad (T-28):** las revisiones S1–S11 (RNF-01 a RNF-06, RN-04, RN-06 y SRS 6.2) y los
 > casos de Rules Playground están en [`revision-seguridad.md`](revision-seguridad.md).
 >
+> **Piloto (T-31 y T-32):**
+> - El protocolo, el consentimiento, la encuesta, la hoja de observación, el ensayo y la
+>   plantilla de resultados están en [`piloto/`](piloto/01-protocolo.md).
+> - La columna "Piloto" se llena con la regla de la sección 5 del
+>   [informe final](piloto/07-informe-final.md#5-cómo-llenar-la-columna-piloto-de-la-matriz).
+> - Las excepciones aceptadas del criterio A-11 están en la sección 3 del mismo informe.
+>
 > **Pendiente:** completar con el Anexo B del plan de trabajo del equipo (los demás flujos
 > F2–F8) cuando esté disponible.
 
@@ -26,7 +33,9 @@ método de verificación, el responsable y el resultado.
 - **✅/❌:** resultado de la prueba manual en la integración (T-27). Por cada ❌ se abre
   un issue con el ID del requisito. Los pasos de F1, F6, F9 y F10 y la regla para marcar
   cada requisito están en [`registro-integracion.md`](registro-integracion.md).
-- **Piloto:** resultado observado en la prueba piloto (T-32).
+- **Piloto:** resultado observado en la prueba piloto (T-32), según la regla del
+  [informe final](piloto/07-informe-final.md#5-cómo-llenar-la-columna-piloto-de-la-matriz).
+  Lo que el piloto no ejercita pasa a N/A.
 - **Responsable:** se toma del encabezado de cada pantalla en `src/app/`. *Por asignar*
   significa que ningún archivo lo indica todavía.
 
@@ -164,8 +173,8 @@ método de verificación, el responsable y el resultado.
 | RNF-09 | Rendimiento | CU-05 | — | 50 mensajes entre dos dispositivos: 10 s o menos en al menos el 90 % | ME | Alexis | ⬜ | ⬜ |
 | RNF-10 | Rendimiento | CU-03, CU-05 | CB-LOG-9 | Simular red lenta y verificar el indicador de progreso | PF | Equipo | ⬜ | ⬜ |
 | RNF-11 | Rendimiento | CU-03, CU-05 | — | Prueba de carga con 30 sesiones simultáneas | ME | Equipo | ⬜ | N/A |
-| RNF-12 | Usabilidad | CU-01, CU-04, CU-07 | — | Flujo "registrarse → servicio cercano → alerta" sin ayuda en al menos el 70 % | ME, PP | Alexis (T-32) | ⬜ | ⬜ |
-| RNF-13 | Usabilidad | Todos | — | Encuesta al final del piloto con al menos 80 % de satisfacción | PP | Alexis (T-31, T-32) | N/A | ⬜ |
+| RNF-12 | Usabilidad | CU-01, CU-04, CU-07 | — | Flujo "registrarse → servicio cercano → alerta" sin ayuda en al menos el 70 %, tras una inducción de 10 minutos o menos (tareas T1 a T3 de la [hoja de observación](piloto/04-hoja-observacion.md)) | ME, PP | Alexis (T-32) | ⬜ | ⬜ |
+| RNF-13 | Usabilidad | Todos | — | Encuesta al final del piloto con al menos 80 % de satisfacción: respuestas de 4 o 5 sobre el total de las 9 preguntas ([encuesta](piloto/03-encuesta.md)) | PP | Alexis (T-31, T-32) | N/A | ⬜ |
 | RNF-14 | Usabilidad | Todos | CB-ERR-1 a 3, CB-LOG-8 | Revisar el catálogo de errores: cada uno indica causa y acción | IN | Equipo | ⬜ | ⬜ |
 | RNF-15 | Usabilidad | Todos | CB-FLG-1 a 3 | Cada sección principal se alcanza en 3 toques o menos | IN | Equipo | ⬜ | ⬜ |
 | RNF-16 | Accesibilidad | CU-07 | — | Revisar las alertas en escala de grises: el nivel se distingue por texto o icono | IN | Carlos | ⬜ | N/A |
@@ -219,7 +228,7 @@ método de verificación, el responsable y el resultado.
 | A-8 | La región piloto tiene al menos 5 lugares destacados y 3 opciones de hospedaje por localidad con contacto funcional (conteo en [`datos-piloto.md`](datos-piloto.md)) | RF-26, RF-35 | ⬜ |
 | A-9 | Las paradas aparecen en el mapa y la alerta de medio alternativo se despliega en zonas sin cobertura | RF-39, RF-40 | ⬜ |
 | A-10 | Los casos de prueba de prioridad Alta se ejecutan sin defectos críticos abiertos | Todos los de prioridad Alta | ⬜ |
-| A-11 | El piloto alcanza buen nivel de satisfacción y de finalización del flujo principal, o se documentan las excepciones | RNF-12, RNF-13 | ⬜ |
+| A-11 | El piloto alcanza buen nivel de satisfacción y de finalización del flujo principal, o se documentan las excepciones (resultados y excepciones en el [informe final](piloto/07-informe-final.md)) | RNF-12, RNF-13 | ⬜ |
 | A-12 | El prototipo se entrega validado antes de terminar la primera semana de diciembre de 2026 | — | ⬜ |
 
 ---
