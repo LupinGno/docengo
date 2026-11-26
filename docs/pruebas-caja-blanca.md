@@ -122,3 +122,39 @@ if (texto.length > 280)   → 5
 
 **Prueba manual (criterio del SRS):** registrar una alerta de cada nivel (alto, medio y bajo)
 con una cuenta y verlas desde otra cuenta.
+
+## 8. Confirmar y desmentir alertas (RF-34) — `src/lib/votos.ts`
+
+Cada voto se guarda en `alertas/{alertaId}/votos/{uid}`. Como el id del documento es el uid,
+cada docente tiene **un solo voto por alerta**: cambiar de opinión lo reemplaza y no lo duplica.
+Las reglas de Firestore impiden que el autor vote su propia alerta y que alguien vote a nombre de otro.
+
+**`contarVotos(votos)`** — 2 decisiones (`for`, `if`) → **V(G) = 3**
+
+| Caso | Camino | Resultado esperado |
+|---|---|---|
+| CB-VOT-1 | Lista vacía: el ciclo no se ejecuta | 0 confirmaciones, 0 desmentidos |
+| CB-VOT-2 | Votos mezclados: entra a ambos lados del `if` | 2 confirmaciones, 1 desmentido |
+
+**`estadoAlerta(conteo)`** — 2 decisiones → **V(G) = 3**
+
+| Caso | Camino | Resultado esperado |
+|---|---|---|
+| CB-VOT-3 | Nadie ha votado | Sin verificar |
+| CB-VOT-4 | Más confirmaciones que desmentidos | Confirmada |
+| CB-VOT-5 | Empate o más desmentidos | En duda |
+
+**`puedeVotar(autorId, uid)`** — 1 decisión compuesta (`&&`) → **V(G) = 2**; condiciones múltiples = 3 casos
+
+| Caso | Entrada | Resultado |
+|---|---|---|
+| CB-VOT-6 | Sin sesión / el autor / otro docente | `false` / `false` / `true` |
+
+**`siguienteVoto(actual, elegido)`** — 1 decisión → **V(G) = 2**
+
+| Caso | Entrada | Resultado |
+|---|---|---|
+| CB-VOT-7 | Mismo voto que ya tenía / el otro voto / sin voto previo | Se quita / se cambia / se guarda |
+
+**Prueba manual (criterio del SRS):** con 3 cuentas, A crea una alerta, B confirma y C desmiente.
+Después B cambia su voto: el conteo cambia sin que se dupliquen los votos. A no ve los botones en su alerta.
