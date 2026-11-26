@@ -1,6 +1,7 @@
 // RF-26: minimapa para marcar dónde está un lugar.
 // Tocar el mapa coloca el pin; "Usar mi ubicación" lo pone en la posición del GPS.
 // La ubicación es opcional para usar la app (RF-15): si se niega el permiso, se puede tocar el mapa.
+// onTocando avisa al formulario cuando el dedo está sobre el mapa, para pausar su scroll (Android).
 import { useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
@@ -11,9 +12,12 @@ import { colores, estilos, REGION_PILOTO } from '../constants/tema';
 type Props = {
   valor: Coordenada | null;
   onCambiar: (c: Coordenada) => void;
+  onTocando?: (tocando: boolean) => void;
 };
 
-export default function SelectorUbicacion({ valor, onCambiar }: Props) {
+const CERCA = { latitudeDelta: 0.02, longitudeDelta: 0.02 };
+
+export default function SelectorUbicacion({ valor, onCambiar, onTocando }: Props) {
   const [buscando, setBuscando] = useState(false);
   const [aviso, setAviso] = useState('');
   const mapa = useRef<MapView>(null);
@@ -31,7 +35,7 @@ export default function SelectorUbicacion({ valor, onCambiar }: Props) {
       const { latitude, longitude } = pos.coords;
       onCambiar({ latitud: latitude, longitud: longitude });
       // Se acerca el mapa al pin; si el usuario lo arrastra después, no se regresa
-      mapa.current?.animateToRegion({ latitude, longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 });
+      mapa.current?.animateToRegion({ latitude, longitude, ...CERCA });
     } catch {
       setAviso('No se pudo obtener tu ubicación. Toca el mapa para marcar el lugar.');
     } finally {
@@ -43,11 +47,17 @@ export default function SelectorUbicacion({ valor, onCambiar }: Props) {
 
   return (
     <View style={{ marginBottom: 12 }}>
-      <View style={styles.marco}>
+      <View
+        style={styles.marco}
+        onTouchStart={() => onTocando?.(true)}
+        onTouchEnd={() => onTocando?.(false)}
+        onTouchCancel={() => onTocando?.(false)}
+      >
         <MapView
           ref={mapa}
           style={StyleSheet.absoluteFill}
-          initialRegion={REGION_PILOTO}
+          // Al editar, el mapa arranca centrado en el pin guardado
+          initialRegion={pin ? { ...pin, ...CERCA } : REGION_PILOTO}
           onPress={(e) =>
             onCambiar({ latitud: e.nativeEvent.coordinate.latitude, longitud: e.nativeEvent.coordinate.longitude })
           }

@@ -176,9 +176,8 @@ lista de lugares que recomienda la comunidad, del más reciente al más antiguo.
   se puede seguir tocando el mapa (RF-15).
 
 El lugar se guarda en la colección `lugares` con `autorId`, `autorNombre` y `fecha`.
-La regla genérica de `firestore.rules` ya cubre este módulo: cualquier docente con sesión
-puede leer, cada quien crea a su nombre y solo el autor o un admin pueden editar o borrar
-(base para RF-29 en T-13).
+Desde T-13, el formulario vive en `src/components/FormularioLugar.tsx` (lo comparten
+Publicar y Editar) y `lugares` tiene su propio bloque en `firestore.rules`.
 
 ### Funciones
 
@@ -214,9 +213,169 @@ Cada caso parte de un borrador válido y cambia solo el campo que prueba.
 
 - Los máximos de nombre (60) y descripción (300) se aplican con `maxLength` en el
   formulario, no en `validarLugar`. Así no queda un camino inalcanzable como el camino 2
-  de `validarReporte`. Del lado del servidor no se validan; si se requiere, se puede
-  agregar un bloque `lugares` en `firestore.rules` en T-13.
+  de `validarReporte`. Desde T-13, `firestore.rules` repite estos límites y las listas
+  del lado del servidor (función `lugarValido()`, ver la sección "Valoraciones de lugares").
 - La pantalla repite `!ubicacion` después de `validarLugar` solo para que TypeScript sepa
   que la ubicación no es `null`. No cambia el comportamiento.
 - No se revisa que el pin quede dentro de la región piloto. La localidad elegida sirve
   para filtrar (RF-27), pero un pin mal colocado no se detecta.
+
+---
+
+## Filtros de lugares — `filtrarLugares` en `src/lib/lugares.ts` (T-13, RF-27)
+
+**Responsable:** Alexis Rodríguez Martínez
+**Pruebas:** `__tests__/lib/filtros-lugares.test.ts`
+
+La lista `src/app/lugares/index.tsx` tiene dos filas de chips:
+
+- **Localidad**: Todas, Yuriria, Uriangato y Moroleón.
+- **Categoría**: Todas y las 6 de `CATEGORIAS_LUGAR`.
+
+El filtro se aplica en la app sobre la lista que ya llega en tiempo real, así que no
+requiere índices compuestos en Firestore. Si no hay resultados se muestra
+"No hay lugares con esos filtros.".
+
+### Funciones
+
+| Función | Decisiones | V(G) | Caminos independientes |
+|---|---|---|---|
+| `filtrarLugares(lugares, localidad, categoria)` | 2 (`localidad !== TODAS`, `categoria !== TODAS`) | 3 | 1: ningún filtro · 2: solo localidad · 3: solo categoría |
+
+Hay un cuarto caso con **ambos** filtros (los dos `if` verdaderos). Es el uso real en la
+pantalla y además prueba el resultado vacío.
+
+### Casos de prueba
+
+Los casos usan 4 lugares de prueba:
+
+1. Moroleón, Cafetería
+2. Moroleón, Comida
+3. Yuriria, Cafetería
+4. Uriangato, Cultura
+
+| ID | Entrada | Resultado esperado | Camino |
+|---|---|---|---|
+| CB-FLU-1 | `(Todas, Todas)` | Los 4 lugares, sin cambios | 1 |
+| CB-FLU-2 | `('Moroleón', Todas)` | Lugares 1 y 2 | 2 |
+| CB-FLU-3 | `(Todas, 'Cafetería')` | Lugares 1 y 3 | 3 |
+| CB-FLU-4 | `('Yuriria', 'Cafetería')` y `('Uriangato', 'Compras')` | Lugar 3, y `[]` | 2 + 3 (ambos filtros) |
+
+### Prueba manual (criterio del SRS, RF-27)
+
+1. Con al menos 5 lugares de prueba en varias localidades y categorías, elegir cada
+   localidad y comprobar que solo aparecen los lugares de esa localidad.
+2. Elegir una categoría y combinarla con una localidad. Al volver a **Todas** aparece la
+   lista completa.
+3. Una combinación sin lugares muestra "No hay lugares con esos filtros.".
+
+### Hallazgos
+
+- Ninguno.
+
+---
+
+## Valoraciones de lugares — `src/lib/valoraciones.ts` (T-13, RF-28 y RF-29)
+
+**Responsable:** Alexis Rodríguez Martínez
+**Pruebas:** `__tests__/lib/valoraciones.test.ts`
+
+Al tocar un lugar se abre su ficha, `src/app/lugares/[id].tsx`. La ficha muestra la
+descripción, un minimapa con el pin, el promedio (`textoPromedio`) y los comentarios en
+tiempo real. Lo que se puede hacer depende de quién la abra:
+
+- **Si no eres el autor**, ves el formulario `src/components/ValorarLugar.tsx`: de 1 a 5
+  estrellas y un comentario opcional de máximo 300 caracteres.
+  - La valoración se guarda en `lugares/{lugarId}/valoraciones/{uid}`.
+  - Como el id del documento es tu uid, **si vuelves a valorar se reemplaza tu valoración
+    anterior**. Hay una sola por persona por lugar.
+- **Si eres el autor** (`puedeEditar`), no ves el formulario de valoración. En su lugar ves:
+  - **Editar**, que abre `src/app/lugares/editar/[id].tsx` con el mismo formulario de Publicar.
+  - **Eliminar**, que pide confirmación.
+
+El promedio se calcula en la app a partir de la subcolección. No se guarda en el documento
+del lugar porque quien valora no es el autor y la regla no le permite modificarlo.
+
+### Funciones
+
+| Función | Decisiones | V(G) | Caminos independientes |
+|---|---|---|---|
+| `promedioEstrellas(valoraciones)` | 1 (`length === 0`) | 2 | 1: sin valoraciones → `null` · 2: promedio redondeado a 1 decimal |
+| `textoPromedio(promedio, total)` | 2 (`promedio === null`, `total === 1`) | 3 | 1: "Sin valoraciones" · 2: singular · 3: plural |
+| `validarEstrellas(estrellas)` | 1 (`!entero \|\| < 1 \|\| > 5`) | 2 | 1: inválidas → mensaje · 2: válidas → `null` |
+| `puedeEditar(autorId, uid)` | 0 | 1 | 1: `uid !== undefined && autorId === uid` |
+
+`validarEstrellas` tiene una sola decisión con tres condiciones. CB-VLR-7 prueba cada
+condición por separado (0, 6 y 3.5) para tener cobertura de condiciones múltiples.
+
+### Casos de prueba
+
+| ID | Función | Entrada | Resultado esperado | Camino |
+|---|---|---|---|---|
+| CB-VLR-1 | `promedioEstrellas` | `[]` | `null` | 1 |
+| CB-VLR-2 | `promedioEstrellas` | A da 5, B da 3 | `4` (★ 4.0) | 2 |
+| CB-VLR-3 | `promedioEstrellas` | A cambia a 4: `[4, 3]`; y `[5, 4, 4]` | `3.5` (siguen siendo 2 votos); `4.3` | 2 (redondeo) |
+| CB-VLR-4 | `textoPromedio` | `(null, 0)` | `"Sin valoraciones"` | 1 |
+| CB-VLR-5 | `textoPromedio` | `(5, 1)` | `"★ 5.0 · 1 valoración"` | 2 |
+| CB-VLR-6 | `textoPromedio` | `(3.5, 2)` | `"★ 3.5 · 2 valoraciones"` | 3 |
+| CB-VLR-7 | `validarEstrellas` | `0`, `6` y `3.5` | `"Elige de 1 a 5 estrellas."` | 1 |
+| CB-VLR-8 | `validarEstrellas` | `1` y `5` | `null` (valores límite) | 2 |
+| CB-VLR-9 | `puedeEditar` | `('uidA','uidA')`, `('uidA','uidB')`, `('uidA', undefined)` | `true`, `false`, `false` | Único camino |
+
+### Reglas de Firestore (`firestore.rules`, bloque `lugares`)
+
+La regla genérica `/{coleccion}/{id}` excluye `reportes` y `lugares`. Firestore combina
+las reglas con OR, así que sin esa exclusión la regla genérica permitiría editar un lugar
+sin validar sus campos.
+
+| Ruta | Operación | Quién | Condición |
+|---|---|---|---|
+| `lugares/{id}` | `read` | cualquier docente | con sesión |
+| `lugares/{id}` | `create` | cualquier docente | `autorId == uid` y `lugarValido()` |
+| `lugares/{id}` | `update` | autor o admin | autor: `lugarValido()` y `autorId` sin cambios · admin: moderación (RF-45) |
+| `lugares/{id}` | `delete` | autor o admin | — |
+| `…/valoraciones/{uid}` | `read` | cualquier docente | con sesión |
+| `…/valoraciones/{uid}` | `create`, `update` | quien valora | id = su uid, `autorId == uid`, `estrellas` entero de 1 a 5, `comentario.size() <= 300` y **no es el autor del lugar** (`get()` del lugar) |
+| `…/valoraciones/{uid}` | `delete` | quien valoró o admin | — |
+
+`lugarValido()` revisa los campos así:
+
+| Campo | Condición |
+|---|---|
+| `nombre` | no vacío, máximo 60 caracteres |
+| `categoria` | una de `CATEGORIAS_LUGAR` |
+| `localidad` | una de la región piloto |
+| `descripcion` | no vacía, máximo 300 caracteres |
+| `latitud`, `longitud` | numéricas |
+
+### Prueba manual (criterio del SRS, RF-28 y RF-29)
+
+Se necesitan tres cuentas: A, B y C.
+
+1. A publica un lugar. B le da 5 estrellas y C le da 3. La ficha muestra
+   **★ 4.0 · 2 valoraciones**.
+2. B cambia su valoración a 4. La ficha muestra **★ 3.5 · 2 valoraciones**, no 3 votos.
+   En Firebase Console sigue habiendo un solo documento `valoraciones/<uidB>`.
+3. En la ficha de su propio lugar, A no ve "Valora este lugar"; ve **Editar** y **Eliminar**.
+4. A edita la descripción. B ve el cambio en la ficha y en la lista sin recargar.
+5. B no ve Editar ni Eliminar en el lugar de A. Si abre `/lugares/editar/<id>` ve
+   "Solo el autor puede editar este lugar.", y aunque intentara guardar, la regla
+   rechazaría la escritura.
+6. A elimina el lugar, confirma en el aviso, y el lugar desaparece de la lista de B.
+7. Sin conexión, guardar una valoración o una edición muestra el error y conserva los
+   datos escritos (RNF-20).
+
+### Hallazgos
+
+- **Valoraciones huérfanas:** Firestore no borra las subcolecciones al eliminar un
+  documento. Cuando se elimina un lugar, sus valoraciones se quedan en
+  `lugares/{id}/valoraciones`. La app ya no las muestra, pero cualquier persona con sesión
+  que conozca la ruta todavía puede leerlas. Se acepta para el piloto y su limpieza queda
+  para la moderación (RF-45).
+- Las listas de categorías y localidades y los límites de largo están escritos dos veces:
+  en `src/lib/lugares.ts` y en `firestore.rules`, igual que los motivos de reportes. Si se
+  cambia uno, hay que cambiar el otro.
+- El admin puede editar un lugar sin pasar por `lugarValido()`. Es intencional, para
+  moderar, y se revisará en T-28 (seguridad).
+- La regla de valoraciones hace un `get()` del lugar en cada escritura, lo que suma una
+  lectura facturable. Si el lugar ya fue eliminado, la escritura se rechaza.

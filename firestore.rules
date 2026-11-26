@@ -32,12 +32,47 @@ service cloud.firestore {
       allow delete: if (autenticado() && request.auth.uid == uid) || esAdmin();
     }
 
-    // puntos, servicios, mensajes, alertas, hospedajes, lugares, paradas
-    // (se excluye "reportes": las reglas se suman con OR y tiene su propio bloque abajo)
+    // puntos, servicios, mensajes, alertas, hospedajes, paradas
+    // (se excluyen "reportes" y "lugares": las reglas se suman con OR y tienen su propio bloque abajo)
     match /{coleccion}/{id} {
-      allow read: if coleccion != 'reportes' && autenticado();
-      allow create: if coleccion != 'reportes' && creaASuNombre();
-      allow update, delete: if coleccion != 'reportes' && (esAutor() || esAdmin());
+      allow read: if !(coleccion in ['reportes', 'lugares']) && autenticado();
+      allow create: if !(coleccion in ['reportes', 'lugares']) && creaASuNombre();
+      allow update, delete: if !(coleccion in ['reportes', 'lugares']) && (esAutor() || esAdmin());
+    }
+
+    // RF-26: mismas validaciones que src/lib/lugares.ts (CATEGORIAS_LUGAR, REGIONES, MAX_NOMBRE, MAX_DESCRIPCION)
+    function lugarValido() {
+      let d = request.resource.data;
+      return d.nombre is string && d.nombre.trim().size() > 0 && d.nombre.size() <= 60
+        && d.categoria in ['Comida', 'Cafetería', 'Parque o recreación', 'Cultura', 'Compras', 'Otro']
+        && d.localidad in ['Yuriria', 'Uriangato', 'Moroleón']
+        && d.descripcion is string && d.descripcion.trim().size() > 0 && d.descripcion.size() <= 300
+        && d.latitud is number && d.longitud is number;
+    }
+
+    // RF-26 a RF-29: lugares destacados. Solo el autor edita o elimina (o un admin, RF-45),
+    // y al editar no puede cambiar autorId.
+    match /lugares/{lugarId} {
+      allow read: if autenticado();
+      allow create: if creaASuNombre() && lugarValido();
+      allow update: if (esAutor() && lugarValido() && request.resource.data.autorId == resource.data.autorId)
+                    || esAdmin();
+      allow delete: if esAutor() || esAdmin();
+
+      // RF-28: id = uid de quien valora → una valoración por persona; valorar otra vez la reemplaza.
+      // El autor no puede valorar su propio lugar. Mismas validaciones que src/lib/valoraciones.ts.
+      match /valoraciones/{uid} {
+        allow read: if autenticado();
+        allow create, update: if autenticado() && request.auth.uid == uid
+                              && request.resource.data.autorId == uid
+                              && request.resource.data.estrellas is int
+                              && request.resource.data.estrellas >= 1
+                              && request.resource.data.estrellas <= 5
+                              && request.resource.data.comentario is string
+                              && request.resource.data.comentario.size() <= 300
+                              && get(/databases/$(database)/documents/lugares/$(lugarId)).data.autorId != uid;
+        allow delete: if (autenticado() && request.auth.uid == uid) || esAdmin();
+      }
     }
 
     // RF-25: reportes de mensajes. Id = "<idMensaje>_<uid>" → un reporte por persona por mensaje.
