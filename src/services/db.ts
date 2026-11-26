@@ -51,6 +51,11 @@ export async function crear(nombre: string, datos: object): Promise<string> {
   return ref.id;
 }
 
+/** Crea o reemplaza un documento con un id que tú eliges (por ejemplo, el uid del docente). */
+export function guardar(nombre: string, id: string, datos: object) {
+  return setDoc(doc(db, nombre, id), datos as DocumentData);
+}
+
 /**
  * Crea un documento con un id elegido por la app (ej. un reporte por persona por mensaje).
  * Si el documento ya existe, Firestore lo trata como actualización y aplica la regla de update.
