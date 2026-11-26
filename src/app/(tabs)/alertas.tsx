@@ -1,31 +1,38 @@
 // RF-30 a RF-34: alertas de inseguridad. Responsable: Carlos.
-// Ya lista las alertas. Falta: formulario para registrar (RF-30), confirmar/desmentir (RF-34),
-// mostrarlas en el mapa (RF-31) junto con José y notificar cercanía (RF-33).
+// Hecho: lista de alertas y formulario para registrar (RF-30).
+// Falta: confirmar/desmentir (RF-34), mostrarlas en el mapa (RF-31) junto con José
+// y notificar cercanía (RF-33).
 import { useEffect, useState } from 'react';
-import { FlatList, Text, View } from 'react-native';
+import { FlatList, Pressable, Text, View } from 'react-native';
 import { escuchar } from '../../services/db';
-import type { Alerta, TipoAlerta } from '../../types/modelos';
+import type { Alerta } from '../../types/modelos';
+import { NOMBRE_TIPO } from '../../lib/alertas';
+import FormularioAlerta from '../../components/FormularioAlerta';
 import { colorNivel, estilos } from '../../constants/tema';
-
-const NOMBRE_TIPO: Record<TipoAlerta, string> = {
-  ambiente_toxico: 'Ambiente tóxico',
-  crimen_organizado: 'Crimen organizado',
-  baja_seguridad: 'Baja seguridad',
-};
 
 export default function Alertas() {
   const [alertas, setAlertas] = useState<Alerta[]>([]);
+  const [formularioAbierto, setFormularioAbierto] = useState(false);
 
   useEffect(() => escuchar<Alerta>('alertas', (a) => setAlertas(a.sort((x, y) => y.fecha - x.fecha))), []);
 
   return (
     <View style={estilos.contenedor}>
-      <Text style={{ marginBottom: 12 }}>
-        Reportes de la comunidad docente. No sustituyen las alertas oficiales.
-      </Text>
       <FlatList
         data={alertas}
         keyExtractor={(a) => a.id}
+        keyboardShouldPersistTaps="handled"
+        ListHeaderComponent={
+          <>
+            <Text style={{ marginBottom: 12 }}>
+              Reportes de la comunidad docente. No sustituyen a las autoridades.
+            </Text>
+            <Pressable style={[estilos.boton, { marginBottom: 12 }]} onPress={() => setFormularioAbierto((a) => !a)}>
+              <Text style={estilos.textoBoton}>{formularioAbierto ? 'Cancelar' : 'Registrar alerta'}</Text>
+            </Pressable>
+            {formularioAbierto && <FormularioAlerta alTerminar={() => setFormularioAbierto(false)} />}
+          </>
+        }
         ListEmptyComponent={<Text>No hay alertas registradas.</Text>}
         renderItem={({ item }) => (
           <View style={[estilos.tarjeta, { borderLeftWidth: 6, borderLeftColor: colorNivel[item.nivel] }]}>
