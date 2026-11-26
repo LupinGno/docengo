@@ -7,6 +7,7 @@ import {
   doc,
   onSnapshot,
   query,
+  setDoc,
   updateDoc,
   type DocumentData,
   type QueryConstraint,
@@ -35,6 +36,11 @@ export function escuchar<T>(
 export async function crear(nombre: string, datos: object): Promise<string> {
   const ref = await addDoc(collection(db, nombre), datos as DocumentData);
   return ref.id;
+}
+
+/** Crea o reemplaza un documento con un id que tú eliges (por ejemplo, el uid del docente). */
+export function guardar(nombre: string, id: string, datos: object) {
+  return setDoc(doc(db, nombre, id), datos as DocumentData);
 }
 
 export function actualizar(nombre: string, id: string, cambios: object) {
