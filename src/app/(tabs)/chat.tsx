@@ -1,5 +1,5 @@
-// RF-20, RF-21, RF-22: chat en tiempo real por sala temática.
-// Responsable: Alexis. Siguiente paso: salas por región, reportar mensaje (RF-25), notificaciones (RF-24).
+// RF-20, RF-21, RF-22: chat en tiempo real por sala (región + tema).
+// Responsable: Alexis. Siguiente paso: reportar mensaje (RF-25), notificaciones (RF-24).
 import { useEffect, useState } from 'react';
 import {
   FlatList,
@@ -14,16 +14,17 @@ import {
 } from 'react-native';
 import { crear, escuchar, where } from '../../services/db';
 import { useAuth } from '../../context/AuthContext';
-import type { Mensaje } from '../../types/modelos';
+import type { Localidad, Mensaje } from '../../types/modelos';
 import { colores, estilos } from '../../constants/tema';
-
-const SALAS = ['General', 'Escuela', 'Ambiente laboral', 'Servicios básicos', 'Institucional'];
+import { idSala, REGIONES, TEMAS, tituloSala } from '../../lib/salas';
 
 export default function Chat() {
   const { usuario } = useAuth();
-  const [sala, setSala] = useState(SALAS[0]);
+  const [region, setRegion] = useState<Localidad>(REGIONES[0]);
+  const [tema, setTema] = useState(TEMAS[0]);
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [texto, setTexto] = useState('');
+  const sala = idSala(region, tema);
 
   // Se ordena en la app para no requerir un índice compuesto en Firestore
   useEffect(
@@ -38,6 +39,8 @@ export default function Chat() {
     await crear('mensajes', {
       texto: limpio,
       sala,
+      region,
+      tema,
       autorId: usuario.uid,
       autorNombre: usuario.displayName ?? 'Docente',
       fecha: Date.now(),
@@ -46,13 +49,25 @@ export default function Chat() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.salas}>
-        {SALAS.map((s) => (
-          <Pressable key={s} onPress={() => setSala(s)} style={[estilos.chip, sala === s && estilos.chipActivo]}>
-            <Text style={sala === s ? estilos.textoChipActivo : estilos.textoChip}>{s}</Text>
-          </Pressable>
-        ))}
-      </ScrollView>
+      <View style={styles.salas}>
+        <Text style={styles.etiqueta}>Región</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.fila}>
+          {REGIONES.map((r) => (
+            <Pressable key={r} onPress={() => setRegion(r)} style={[estilos.chip, region === r && estilos.chipActivo]}>
+              <Text style={region === r ? estilos.textoChipActivo : estilos.textoChip}>{r}</Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+        <Text style={styles.etiqueta}>Tema</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.fila}>
+          {TEMAS.map((t) => (
+            <Pressable key={t} onPress={() => setTema(t)} style={[estilos.chip, tema === t && estilos.chipActivo]}>
+              <Text style={tema === t ? estilos.textoChipActivo : estilos.textoChip}>{t}</Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+        <Text style={[estilos.subtitulo, styles.tituloSala]}>{tituloSala(region, tema)}</Text>
+      </View>
 
       <FlatList
         inverted
@@ -86,7 +101,10 @@ export default function Chat() {
 }
 
 const styles = StyleSheet.create({
-  salas: { flexGrow: 0, padding: 12, borderBottomWidth: 1, borderColor: colores.borde },
+  salas: { padding: 12, borderBottomWidth: 1, borderColor: colores.borde },
+  fila: { flexGrow: 0, marginBottom: 8 },
+  etiqueta: { fontWeight: '600', color: colores.textoSuave, marginBottom: 4 },
+  tituloSala: { marginBottom: 0 },
   burbuja: { maxWidth: '80%', padding: 10, borderRadius: 12, marginVertical: 4 },
   propia: { alignSelf: 'flex-end', backgroundColor: colores.primario },
   ajena: { alignSelf: 'flex-start', backgroundColor: '#EEEEEE' },

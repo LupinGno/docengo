@@ -37,7 +37,9 @@ export type Servicio = Coordenada & {
 export type Mensaje = {
   id: string;
   texto: string;
-  sala: string;
+  sala: string; // idSala(region, tema), ver src/lib/salas.ts (RF-21)
+  region: Localidad;
+  tema: string;
   autorId: string;
   autorNombre: string;
   fecha: number; // Date.now()
