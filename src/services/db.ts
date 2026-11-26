@@ -5,8 +5,10 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   onSnapshot,
   query,
+  setDoc,
   updateDoc,
   type DocumentData,
   type QueryConstraint,
@@ -35,6 +37,19 @@ export function escuchar<T>(
 export async function crear(nombre: string, datos: object): Promise<string> {
   const ref = await addDoc(collection(db, nombre), datos as DocumentData);
   return ref.id;
+}
+
+/**
+ * Crea un documento con un id elegido por la app (ej. un reporte por persona por mensaje).
+ * Si el documento ya existe, Firestore lo trata como actualización y aplica la regla de update.
+ */
+export function crearConId(nombre: string, id: string, datos: object) {
+  return setDoc(doc(db, nombre, id), datos as DocumentData);
+}
+
+/** true si el documento existe. */
+export async function existe(nombre: string, id: string): Promise<boolean> {
+  return (await getDoc(doc(db, nombre, id))).exists();
 }
 
 export function actualizar(nombre: string, id: string, cambios: object) {
