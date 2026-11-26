@@ -216,7 +216,7 @@ método de verificación, el responsable y el resultado.
 | A-5 | Los establecimientos de la BD de prueba aparecen geolocalizados | RF-16 | ⬜ |
 | A-6 | El mapa carga en segundos en al menos el 90 % de 20 pruebas | RNF-08 | ⬜ |
 | A-7 | El chat entrega los mensajes entre dos dispositivos en segundos | RF-20, RNF-09 | ⬜ |
-| A-8 | La región piloto tiene al menos 5 lugares destacados y 3 opciones de hospedaje por localidad con contacto funcional | RF-26, RF-35 | ⬜ |
+| A-8 | La región piloto tiene al menos 5 lugares destacados y 3 opciones de hospedaje por localidad con contacto funcional (conteo en [`datos-piloto.md`](datos-piloto.md)) | RF-26, RF-35 | ⬜ |
 | A-9 | Las paradas aparecen en el mapa y la alerta de medio alternativo se despliega en zonas sin cobertura | RF-39, RF-40 | ⬜ |
 | A-10 | Los casos de prueba de prioridad Alta se ejecutan sin defectos críticos abiertos | Todos los de prioridad Alta | ⬜ |
 | A-11 | El piloto alcanza buen nivel de satisfacción y de finalización del flujo principal, o se documentan las excepciones | RNF-12, RNF-13 | ⬜ |
@@ -241,3 +241,4 @@ método de verificación, el responsable y el resultado.
 | CB-FLU | 1 a 4 | `__tests__/lib/filtros-lugares.test.ts` | RF-27 |
 | CB-VLR | 1 a 9 | `__tests__/lib/valoraciones.test.ts` | RF-28, RF-29 |
 | CB-NOT | 1 a 5 | `__tests__/lib/notificaciones.test.ts` | RF-24 |
+| DAT | 1 a 4 (validación de datos, no caja blanca) | `__tests__/datos/lugares-piloto.test.ts` | RF-26, RF-27, A-8 ([`datos-piloto.md`](datos-piloto.md)) |
