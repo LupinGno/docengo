@@ -1,14 +1,13 @@
 // RF-30 a RF-34: alertas de inseguridad. Responsable: Carlos.
-// Hecho: lista de alertas y formulario para registrar (RF-30).
-// Falta: confirmar/desmentir (RF-34), mostrarlas en el mapa (RF-31) junto con José
-// y notificar cercanía (RF-33).
+// Hecho: lista, formulario para registrar (RF-30) y confirmar/desmentir (RF-34).
+// Falta: mostrarlas en el mapa (RF-31) junto con José y notificar cercanía (RF-33).
 import { useEffect, useState } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import { escuchar } from '../../services/db';
 import type { Alerta } from '../../types/modelos';
-import { NOMBRE_TIPO } from '../../lib/alertas';
 import FormularioAlerta from '../../components/FormularioAlerta';
-import { colorNivel, estilos } from '../../constants/tema';
+import TarjetaAlerta from '../../components/TarjetaAlerta';
+import { estilos } from '../../constants/tema';
 
 export default function Alertas() {
   const [alertas, setAlertas] = useState<Alerta[]>([]);
@@ -34,17 +33,7 @@ export default function Alertas() {
           </>
         }
         ListEmptyComponent={<Text>No hay alertas registradas.</Text>}
-        renderItem={({ item }) => (
-          <View style={[estilos.tarjeta, { borderLeftWidth: 6, borderLeftColor: colorNivel[item.nivel] }]}>
-            <Text style={estilos.subtitulo}>
-              {NOMBRE_TIPO[item.tipo]} · riesgo {item.nivel}
-            </Text>
-            <Text>{item.descripcion}</Text>
-            <Text style={{ marginTop: 6 }}>
-              {item.localidad} · {item.confirmaciones} confirman · {item.desmentidos} desmienten
-            </Text>
-          </View>
-        )}
+        renderItem={({ item }) => <TarjetaAlerta alerta={item} />}
       />
     </View>
   );
