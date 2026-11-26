@@ -97,7 +97,7 @@ método de verificación, el responsable y el resultado.
 
 | ID | Prioridad | Pruebas CB | Prueba manual (criterio del SRS) | Método | Responsable | ✅/❌ | Piloto |
 |---|---|---|---|---|---|---|---|
-| RF-26 | Alta | CB-LUG-1 a 6 *(pendiente)* | Publicar al menos 5 lugares desde la app y verlos desde otra cuenta | PF, DE | Alexis | ⬜ | ⬜ |
+| RF-26 | Alta | CB-LUG-1 a 6 | Publicar al menos 5 lugares desde la app y verlos desde otra cuenta | PF, DE | Alexis | ⬜ | ⬜ |
 | RF-27 | Alta | CB-FLU-1 a 4 *(pendiente)* | Filtrar por localidad de la región piloto y por categoría; comprobar los resultados | PF | Alexis | ⬜ | ⬜ |
 | RF-28 | Media | CB-VLR-1 a 9 *(pendiente)* | A da 5 y B da 3 → ★ 4.0; A cambia a 4 → ★ 3.5 (no 3 votos) | PF | Alexis | ⬜ | ⬜ |
 | RF-29 | Media | CB-VLR-1 a 9 *(pendiente)* | Editar una publicación propia y comprobar que el cambio persiste; otra cuenta no puede editarla | PF, PS | Alexis | ⬜ | ⬜ |
@@ -228,7 +228,7 @@ método de verificación, el responsable y el resultado.
 | CB-SAL | 1 a 3 | `__tests__/lib/salas.test.ts` | RF-21 |
 | CB-RES | 1 a 2 | `__tests__/lib/respuestas.test.ts` | RF-22 |
 | CB-REP | 1 a 4 | `__tests__/lib/reportes.test.ts` | RF-25, RNF-04 |
-| CB-LUG | 1 a 6 *(pendiente)* | — | RF-26 |
+| CB-LUG | 1 a 6 | `__tests__/lib/lugares.test.ts` | RF-26 |
 | CB-FLU | 1 a 4 *(pendiente)* | — | RF-27 |
 | CB-VLR | 1 a 9 *(pendiente)* | — | RF-28, RF-29 |
 | CB-NOT | 1 a 5 *(pendiente)* | — | RF-24 |

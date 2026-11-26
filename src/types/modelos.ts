@@ -104,10 +104,12 @@ export type Hospedaje = Coordenada & {
 export type Lugar = Coordenada & {
   id: string;
   nombre: string;
-  categoria: string;
+  categoria: string; // una de CATEGORIAS_LUGAR, ver src/lib/lugares.ts
   localidad: Localidad;
   descripcion: string;
   autorId: string;
+  autorNombre: string;
+  fecha: number; // Date.now()
 };
 
 // RF-39 a RF-42. Colección: "paradas"
