@@ -154,3 +154,69 @@ leer todos los reportes.
   se considera aceptable.
 - La lista de motivos está repetida en `src/lib/reportes.ts` y en `firestore.rules`. Si
   cambia una, hay que cambiar la otra.
+
+---
+
+## Lugares destacados — `src/lib/lugares.ts` (T-10, RF-26)
+
+**Responsable:** Alexis Rodríguez Martínez
+**Pruebas:** `__tests__/lib/lugares.test.ts`
+
+Desde **Más → Lugares destacados** (`src/app/lugares/index.tsx`) se ve en tiempo real la
+lista de lugares que recomienda la comunidad, del más reciente al más antiguo. El botón
+**Publicar lugar** abre `src/app/lugares/nuevo.tsx`, que pide:
+
+- **Nombre** (máximo 60 caracteres).
+- **Categoría**, una de `CATEGORIAS_LUGAR`: Comida, Cafetería, Parque o recreación,
+  Cultura, Compras, Otro.
+- **Localidad**, una de `REGIONES` (`src/lib/salas.ts`): Yuriria, Uriangato, Moroleón.
+- **Descripción** (máximo 300 caracteres).
+- **Ubicación**: se toca el minimapa para colocar el pin, o se usa el botón
+  "Usar mi ubicación" (`src/components/SelectorUbicacion.tsx`). Sin permiso de ubicación
+  se puede seguir tocando el mapa (RF-15).
+
+El lugar se guarda en la colección `lugares` con `autorId`, `autorNombre` y `fecha`.
+La regla genérica de `firestore.rules` ya cubre este módulo: cualquier docente con sesión
+puede leer, cada quien crea a su nombre y solo el autor o un admin pueden editar o borrar
+(base para RF-29 en T-13).
+
+### Funciones
+
+| Función | Decisiones | V(G) | Caminos independientes |
+|---|---|---|---|
+| `validarLugar(borrador)` | 5 (`!nombre.trim()`, `!CATEGORIAS_LUGAR.includes(categoria)`, `!REGIONES.includes(localidad)`, `!descripcion.trim()`, `!ubicacion`) | 6 | 1: nombre vacío · 2: categoría inválida · 3: localidad inválida · 4: descripción vacía · 5: sin ubicación · 6: todo correcto → `null` |
+
+### Casos de prueba
+
+Cada caso parte de un borrador válido y cambia solo el campo que prueba.
+
+| ID | Entrada | Resultado esperado | Camino |
+|---|---|---|---|
+| CB-LUG-1 | `nombre: ''` y `nombre: '   '` | `"Escribe el nombre del lugar."` | 1 |
+| CB-LUG-2 | `categoria: ''` y `categoria: 'Antro'` | `"Elige una categoría."` | 2 |
+| CB-LUG-3 | `localidad: ''` y `localidad: 'Celaya'` | `"Elige una localidad."` | 3 |
+| CB-LUG-4 | `descripcion: ''` y `descripcion: '  \n '` | `"Escribe una descripción."` | 4 |
+| CB-LUG-5 | `ubicacion: null` | `"Marca la ubicación en el mapa."` | 5 |
+| CB-LUG-6 | Borrador válido, y con `categoria: 'Otro'`, `localidad: 'Yuriria'` | `null` | 6 |
+
+### Prueba manual (criterio del SRS, RF-26)
+
+1. A publica al menos 5 lugares (uno o más por localidad, con categorías distintas).
+   Uno con el minimapa y otro con "Usar mi ubicación".
+2. B, con otra cuenta, abre **Lugares destacados** y ve los 5 lugares sin recargar.
+   En Firebase Console cada documento de `lugares` tiene `latitud`, `longitud`,
+   `autorId` y `autorNombre`.
+3. Si A intenta publicar sin llenar un campo, aparece el mensaje de ese campo y no se guarda nada.
+4. Sin conexión, publicar muestra el error y conserva los datos para reintentar (RNF-20).
+5. Negando el permiso de ubicación, "Usar mi ubicación" muestra el aviso y el mapa se puede seguir tocando.
+
+### Hallazgos
+
+- Los máximos de nombre (60) y descripción (300) se aplican con `maxLength` en el
+  formulario, no en `validarLugar`. Así no queda un camino inalcanzable como el camino 2
+  de `validarReporte`. Del lado del servidor no se validan; si se requiere, se puede
+  agregar un bloque `lugares` en `firestore.rules` en T-13.
+- La pantalla repite `!ubicacion` después de `validarLugar` solo para que TypeScript sepa
+  que la ubicación no es `null`. No cambia el comportamiento.
+- No se revisa que el pin quede dentro de la región piloto. La localidad elegida sirve
+  para filtrar (RF-27), pero un pin mal colocado no se detecta.
