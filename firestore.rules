@@ -55,7 +55,23 @@ service cloud.firestore {
       allow update, delete: if esAdmin();
     }
 
-    // Para RF-34 (confirmar/desmentir alertas) Carlos agregará aquí:
-    // match /alertas/{alertaId}/votos/{uid} { ... }
+    // RF-34: confirmar/desmentir alertas (T-06).
+    // Un voto por docente (el id del documento es su uid) y el autor no vota su alerta.
+    match /alertas/{alertaId}/votos/{uid} {
+      function esSuVoto() {
+        return autenticado() && request.auth.uid == uid;
+      }
+      function noEsAutor() {
+        return get(/databases/$(database)/documents/alertas/$(alertaId)).data.autorId != request.auth.uid;
+      }
+      function votoValido() {
+        return request.resource.data.keys().hasOnly(['voto', 'fecha'])
+          && request.resource.data.voto in ['confirma', 'desmiente']
+          && request.resource.data.fecha is int;
+      }
+      allow read: if autenticado();
+      allow create, update: if esSuVoto() && noEsAutor() && votoValido();
+      allow delete: if esSuVoto() || esAdmin();
+    }
   }
 }
