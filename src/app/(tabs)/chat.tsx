@@ -23,7 +23,7 @@ import { avisarParticipantes, marcarSalaVisible } from '../../services/notificac
 import { useAuth } from '../../context/AuthContext';
 import type { Localidad, Mensaje } from '../../types/modelos';
 import { colores, estilos } from '../../constants/tema';
-import { idSala, REGIONES, TEMAS, tituloSala } from '../../lib/salas';
+import { idSala, MAX_MENSAJE, REGIONES, TEMAS, tituloSala } from '../../lib/salas';
 import { citaDe } from '../../lib/respuestas';
 import { salaDeNotificacion } from '../../lib/notificaciones';
 import ReportarMensaje from '../../components/ReportarMensaje';
@@ -183,6 +183,7 @@ export default function Chat() {
         <TextInput
           style={[estilos.input, { flex: 1, marginBottom: 0 }]}
           placeholder={respondiendo ? 'Escribe tu respuesta' : 'Escribe tu duda o recomendación'}
+          maxLength={MAX_MENSAJE}
           value={texto}
           onChangeText={setTexto}
         />

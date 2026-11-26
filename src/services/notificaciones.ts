@@ -1,6 +1,6 @@
 // RF-24: notificaciones de mensajes nuevos. Envuelve expo-notifications y la API de push de Expo.
 //
-//   Plan A (development build): token push en usuarios/{uid}.pushToken; quien envía un mensaje
+//   Plan A (development build): token push en avisos/{uid}.pushToken; quien envía un mensaje
 //          manda el aviso a https://exp.host/--/api/v2/push/send. Llega aunque la app esté cerrada.
 //   Plan B (Expo Go): en Android, Expo Go no tiene push remoto desde el SDK 53. La app escucha los
 //          mensajes nuevos y muestra una notificación local. Solo funciona mientras la app sigue viva.
@@ -10,8 +10,8 @@ import { AppState, Platform } from 'react-native';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { AndroidImportance } from 'expo-notifications';
-import { actualizar, arrayUnion, consultar, where } from './db';
-import type { Mensaje, Usuario } from '../types/modelos';
+import { actualizarOCrear, arrayUnion, consultar, where } from './db';
+import type { Mensaje, RegistroAvisos } from '../types/modelos';
 import { type Aviso, avisoDe, CANAL, destinatarios, salaDeNotificacion } from '../lib/notificaciones';
 import { idSala } from '../lib/salas';
 
@@ -84,12 +84,12 @@ async function enviarPush(tokens: string[], aviso: Aviso) {
  */
 export async function avisarParticipantes(m: Pick<Mensaje, 'sala' | 'region' | 'tema' | 'autorNombre' | 'texto'>, uid: string) {
   try {
-    await actualizar('usuarios', uid, { salas: arrayUnion(m.sala) });
+    await actualizarOCrear('avisos', uid, { salas: arrayUnion(m.sala) });
   } catch (e) {
     console.warn('[Notificaciones] No se pudo registrar la sala del usuario:', (e as Error).message);
   }
   try {
-    const participantes = await consultar<Usuario>('usuarios', where('salas', 'array-contains', m.sala));
+    const participantes = await consultar<RegistroAvisos>('avisos', where('salas', 'array-contains', m.sala));
     await enviarPush(destinatarios(participantes, uid), avisoDe(m));
   } catch (e) {
     console.warn('[Notificaciones] No se pudo enviar el push:', (e as Error).message);

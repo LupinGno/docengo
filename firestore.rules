@@ -21,9 +21,11 @@ service cloud.firestore {
       return autenticado() && request.resource.data.autorId == request.auth.uid;
     }
 
-    // Perfiles: nadie puede darse el rol de admin a sí mismo
+    // Perfiles: nadie puede darse el rol de admin a sí mismo.
+    // Privados (RNF-05, T-28 S8): incluyen el correo, así que solo los lee su dueño o un admin.
     match /usuarios/{uid} {
-      allow read: if autenticado();
+      allow get: if autenticado() && (request.auth.uid == uid || esAdmin());
+      allow list: if esAdmin();
       allow create: if autenticado() && request.auth.uid == uid
                     && request.resource.data.rol == 'docente';
       allow update: if (autenticado() && request.auth.uid == uid
@@ -32,12 +34,51 @@ service cloud.firestore {
       allow delete: if (autenticado() && request.auth.uid == uid) || esAdmin();
     }
 
-    // puntos, servicios, mensajes, alertas, hospedajes, paradas
-    // (se excluyen "reportes" y "lugares": las reglas se suman con OR y tienen su propio bloque abajo)
+    // Colecciones con su propio bloque abajo. Se excluyen de la regla genérica porque
+    // Firestore suma las reglas con OR: sin la exclusión, la genérica las dejaría pasar.
+    function tieneBloquePropio(coleccion) {
+      return coleccion in ['reportes', 'lugares', 'mensajes', 'avisos'];
+    }
+
+    // puntos, servicios, alertas, hospedajes, paradas
     match /{coleccion}/{id} {
-      allow read: if !(coleccion in ['reportes', 'lugares']) && autenticado();
-      allow create: if !(coleccion in ['reportes', 'lugares']) && creaASuNombre();
-      allow update, delete: if !(coleccion in ['reportes', 'lugares']) && (esAutor() || esAdmin());
+      allow read: if !tieneBloquePropio(coleccion) && autenticado();
+      allow create: if !tieneBloquePropio(coleccion) && creaASuNombre();
+      allow update, delete: if !tieneBloquePropio(coleccion) && (esAutor() || esAdmin());
+    }
+
+    // RF-20 a RF-22: mensajes del chat (T-28, S6 y S7). Mismas listas que src/lib/salas.ts
+    // (REGIONES, TEMAS, MAX_MENSAJE). Los mensajes no se editan; el autor o un admin los borra.
+    function mensajeValido() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['texto', 'sala', 'region', 'tema', 'autorId', 'autorNombre', 'fecha', 'respuestaA'])
+        && d.texto is string && d.texto.trim().size() > 0 && d.texto.size() <= 1000
+        && d.region in ['Yuriria', 'Uriangato', 'Moroleón']
+        && d.tema in ['General', 'Escuela', 'Ambiente laboral', 'Servicios básicos', 'Institucional']
+        && d.sala is string && d.sala.size() <= 60
+        && d.autorNombre is string && d.autorNombre.size() <= 60
+        && d.fecha is number
+        && (!('respuestaA' in d) || d.respuestaA is map);
+    }
+
+    match /mensajes/{mensajeId} {
+      allow read: if autenticado();
+      allow create: if creaASuNombre() && mensajeValido();
+      allow update: if esAdmin();
+      allow delete: if esAutor() || esAdmin();
+    }
+
+    // RF-24: salas y token push de cada docente (T-28, S8). Id = uid.
+    // Se separan de "usuarios" porque quien envía un mensaje necesita leer los de los demás.
+    match /avisos/{uid} {
+      allow read: if autenticado();
+      allow create, update: if autenticado() && request.auth.uid == uid
+                            && request.resource.data.keys().hasOnly(['salas', 'pushToken'])
+                            && (!('salas' in request.resource.data)
+                                || (request.resource.data.salas is list && request.resource.data.salas.size() <= 15))
+                            && (!('pushToken' in request.resource.data)
+                                || (request.resource.data.pushToken is string && request.resource.data.pushToken.size() <= 200));
+      allow delete: if (autenticado() && request.auth.uid == uid) || esAdmin();
     }
 
     // RF-26: mismas validaciones que src/lib/lugares.ts (CATEGORIAS_LUGAR, REGIONES, MAX_NOMBRE, MAX_DESCRIPCION)

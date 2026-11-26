@@ -76,6 +76,15 @@ export async function existe(nombre: string, id: string): Promise<boolean> {
   return (await getDoc(doc(db, nombre, id))).exists();
 }
 
+/**
+ * Combina campos en un documento y lo crea si no existe (setDoc con merge).
+ * A diferencia de `actualizar`, no falla con documentos nuevos; a diferencia de `guardar`,
+ * no borra los campos que no se mandan.
+ */
+export function actualizarOCrear(nombre: string, id: string, cambios: object) {
+  return setDoc(doc(db, nombre, id), cambios as DocumentData, { merge: true });
+}
+
 export function actualizar(nombre: string, id: string, cambios: object) {
   return updateDoc(doc(db, nombre, id), cambios as DocumentData);
 }

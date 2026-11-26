@@ -8,7 +8,8 @@ export type Coordenada = {
 
 export type Localidad = 'Yuriria' | 'Uriangato' | 'Moroleón';
 
-// RF-01 y RF-24. Colección: "usuarios" (id = uid). Se crea en src/services/auth.ts.
+// RF-01. Colección: "usuarios" (id = uid). Se crea en src/services/auth.ts.
+// Privada (RNF-05): solo la lee su dueño o un admin, porque incluye el correo.
 export type Usuario = {
   id: string;
   nombre: string;
@@ -16,8 +17,14 @@ export type Usuario = {
   rol: 'docente' | 'admin';
   institucion: string;
   creado: number;
-  pushToken?: string; // token de Expo (Plan A de RF-24); no existe en Expo Go
-  salas?: string[]; // idSala donde ha escrito: recibe avisos de esas salas (RF-24)
+};
+
+// RF-24. Colección: "avisos" (id = uid). Separada de "usuarios" para no exponer el correo (T-28, S8):
+// quien envía un mensaje necesita leer las salas y el token de los demás participantes.
+export type RegistroAvisos = {
+  id: string;
+  salas?: string[]; // idSala donde ha escrito: recibe avisos de esas salas
+  pushToken?: string; // token de Expo (Plan A); no existe en Expo Go
 };
 
 // RF-11: tres categorías de puntos en el mapa. Colección: "puntos"
