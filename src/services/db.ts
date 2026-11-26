@@ -33,6 +33,18 @@ export function escuchar<T>(
   );
 }
 
+/**
+ * Escucha un solo documento en tiempo real. Llama a alCambiar(null) si no existe o si se borró.
+ *   useEffect(() => escucharDoc<Lugar>('lugares', id, setLugar), [id]);
+ */
+export function escucharDoc<T>(nombre: string, id: string, alCambiar: (dato: T | null) => void) {
+  return onSnapshot(
+    doc(db, nombre, id),
+    (snap) => alCambiar(snap.exists() ? ({ id: snap.id, ...snap.data() } as unknown as T) : null),
+    (error) => console.warn(`[Firestore:${nombre}/${id}]`, error.message),
+  );
+}
+
 /** Crea un documento y devuelve su id. No incluyas el campo `id` en `datos`. */
 export async function crear(nombre: string, datos: object): Promise<string> {
   const ref = await addDoc(collection(db, nombre), datos as DocumentData);

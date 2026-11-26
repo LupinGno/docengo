@@ -7,7 +7,7 @@
 // Cuando un módulo lleve una semana en true sin problemas, borren su flag.
 
 export const FLAGS = {
-  lugares: __DEV__,
+  lugares: true, // T-13: RF-26 a RF-29 terminados
   hospedaje: __DEV__,
   transporte: __DEV__,
   perfil: __DEV__,

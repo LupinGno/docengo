@@ -27,3 +27,18 @@ export function validarLugar(b: BorradorLugar): string | null {
   if (!b.ubicacion) return 'Marca la ubicación en el mapa.';
   return null;
 }
+
+// RF-27: valor de los chips que no filtra
+export const TODAS = 'Todas';
+
+/** Deja los lugares de la localidad y la categoría elegidas; TODAS no filtra ese campo. */
+export function filtrarLugares<T extends { localidad: string; categoria: string }>(
+  lugares: T[],
+  localidad: string,
+  categoria: string,
+): T[] {
+  let r = lugares;
+  if (localidad !== TODAS) r = r.filter((l) => l.localidad === localidad);
+  if (categoria !== TODAS) r = r.filter((l) => l.categoria === categoria);
+  return r;
+}

@@ -112,6 +112,17 @@ export type Lugar = Coordenada & {
   fecha: number; // Date.now()
 };
 
+// RF-28. Subcolección: "lugares/{lugarId}/valoraciones"
+// Id del documento = uid de quien valora: una valoración por persona por lugar.
+export type Valoracion = {
+  id: string; // = autorId
+  estrellas: number; // entero del 1 al 5
+  comentario: string; // opcional: puede ir vacío
+  autorId: string;
+  autorNombre: string;
+  fecha: number;
+};
+
 // RF-39 a RF-42. Colección: "paradas"
 export type Parada = Coordenada & {
   id: string;
