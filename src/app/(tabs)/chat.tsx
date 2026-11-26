@@ -1,7 +1,9 @@
-// RF-20, RF-21, RF-22, RF-25: chat en tiempo real por sala (región + tema).
+// RF-20, RF-21, RF-22, RF-24, RF-25: chat en tiempo real por sala (región + tema).
 // Mantener presionado un mensaje permite Responder (con cita) o Reportar.
-// Responsable: Alexis. Siguiente paso: notificaciones (RF-24).
-import { useEffect, useState } from 'react';
+// Al enviar se avisa a los demás participantes de la sala (RF-24); tocar el aviso abre
+// /chat?region=…&tema=… (ver src/components/Notificaciones.tsx).
+// Responsable: Alexis.
+import { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   type AlertButton,
@@ -15,13 +17,32 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { crear, escuchar, where } from '../../services/db';
+import { avisarParticipantes, marcarSalaVisible } from '../../services/notificaciones';
 import { useAuth } from '../../context/AuthContext';
 import type { Localidad, Mensaje } from '../../types/modelos';
 import { colores, estilos } from '../../constants/tema';
 import { idSala, REGIONES, TEMAS, tituloSala } from '../../lib/salas';
 import { citaDe } from '../../lib/respuestas';
+import { salaDeNotificacion } from '../../lib/notificaciones';
 import ReportarMensaje from '../../components/ReportarMensaje';
+
+/**
+ * RF-24: tocar una notificación abre /chat?region=…&tema=…&t=… (t cambia en cada toque).
+ * La sala se ajusta durante el render cuando cambian los parámetros, no en un efecto
+ * (https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes).
+ */
+function useSalaDeNotificacion(abrir: (region: Localidad, tema: string) => void) {
+  const params = useLocalSearchParams<{ region?: string; tema?: string; t?: string }>();
+  const clave = `${params.region}|${params.tema}|${params.t}`;
+  const [claveVista, setClaveVista] = useState<string | null>(null);
+  if (clave !== claveVista) {
+    setClaveVista(clave);
+    const destino = salaDeNotificacion(params);
+    if (destino) abrir(destino.region, destino.tema);
+  }
+}
 
 export default function Chat() {
   const { usuario } = useAuth();
@@ -32,6 +53,20 @@ export default function Chat() {
   const [respondiendo, setRespondiendo] = useState<Mensaje | null>(null);
   const [reportando, setReportando] = useState<Mensaje | null>(null);
   const sala = idSala(region, tema);
+
+  useSalaDeNotificacion((r, t) => {
+    setRegion(r);
+    setTema(t);
+    setRespondiendo(null);
+  });
+
+  // Mientras la sala está en pantalla no se avisa de sus mensajes
+  useFocusEffect(
+    useCallback(() => {
+      marcarSalaVisible(sala);
+      return () => marcarSalaVisible(null);
+    }, [sala]),
+  );
 
   // Se ordena en la app para no requerir un índice compuesto en Firestore
   useEffect(
@@ -63,17 +98,20 @@ export default function Chat() {
     if (!limpio || !usuario) return;
     setTexto('');
     setRespondiendo(null);
+    const autorNombre = usuario.displayName ?? 'Docente';
     await crear('mensajes', {
       texto: limpio,
       sala,
       region,
       tema,
       autorId: usuario.uid,
-      autorNombre: usuario.displayName ?? 'Docente',
+      autorNombre,
       fecha: Date.now(),
       // Firestore no acepta campos undefined: respuestaA solo se agrega si se está respondiendo
       ...(respondiendo && { respuestaA: citaDe(respondiendo) }),
     });
+    // RF-24: no se espera; si falla el aviso, el mensaje ya quedó guardado
+    avisarParticipantes({ sala, region, tema, autorNombre, texto: limpio }, usuario.uid);
   }
 
   return (

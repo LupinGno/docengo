@@ -379,3 +379,90 @@ Se necesitan tres cuentas: A, B y C.
   moderar, y se revisará en T-28 (seguridad).
 - La regla de valoraciones hace un `get()` del lugar en cada escritura, lo que suma una
   lectura facturable. Si el lugar ya fue eliminado, la escritura se rechaza.
+
+---
+
+## Notificaciones — `src/lib/notificaciones.ts` (T-16, RF-24)
+
+**Responsable:** Alexis Rodríguez Martínez
+**Pruebas:** `__tests__/lib/notificaciones.test.ts`
+
+Cuando alguien envía un mensaje en el chat, se avisa a los **participantes de esa sala**: las
+personas que alguna vez escribieron en ella. Al enviar, la sala se agrega a
+`usuarios/{uid}.salas` con `arrayUnion`. Los destinatarios salen de una sola consulta,
+`where('salas', 'array-contains', sala)`, que no necesita índice compuesto. Nunca se avisa a
+quien envía, ni a quien ya tiene esa sala abierta en pantalla.
+
+Al tocar el aviso se abre `/chat?region=…&tema=…`. La pantalla valida los parámetros con
+`salaDeNotificacion` antes de cambiar de sala.
+
+### Dos modos, con detección automática
+
+`src/components/Notificaciones.tsx` se monta en `src/app/_layout.tsx`, pide el permiso y elige
+el modo:
+
+| Modo | Cuándo | Cómo funciona | Limitación |
+|---|---|---|---|
+| **A · push remoto** | Hay token de Expo (development build con `extra.eas.projectId` en `app.json`) | El token se guarda en `usuarios/{uid}.pushToken`. Quien envía hace `POST https://exp.host/--/api/v2/push/send` con los tokens de los participantes. | Necesita EAS y, en Android, credenciales de FCM V1. |
+| **B · local** | No hay token. En **Expo Go para Android** el push remoto no existe desde el SDK 53; también aplica si no hay `projectId` | La app escucha los mensajes con `fecha >` el momento en que abrió y muestra una notificación local con `scheduleNotificationAsync`. | Solo funciona mientras el JS sigue vivo: con la app abierta en otra pestaña o sala, o unos momentos después de mandarla a segundo plano. **Con la app cerrada no llega nada.** |
+
+Los modos se pueden mezclar. Quien está en Expo Go siempre intenta enviar push a los
+participantes que tienen token, así que alguien con un development build sí recibe avisos de
+alguien en Expo Go.
+
+### Funciones
+
+| Función | Decisiones | V(G) | Caminos independientes |
+|---|---|---|---|
+| `tokenValido(token)` | 1 (`typeof === 'string' && regex`) | 2 | 1: token de Expo → `true` · 2: otro valor → `false` |
+| `destinatarios(usuarios, remitenteUid)` | 2 (`for`, `id !== remitente && tokenValido`) | 3 | 1: lista vacía · 2: usuario descartado · 3: token agregado (el `Set` quita repetidos) |
+| `avisoDe(mensaje)` | 1 (`body.length > MAX_CUERPO`) | 2 | 1: cuerpo corto · 2: cuerpo recortado con "…" |
+| `salaDeNotificacion(data)` | 2 (no es objeto, región o tema inválidos) | 3 | 1: no es objeto → `null` · 2: sala inexistente → `null` · 3: sala real → `{ region, tema }` |
+| `debeAvisar(m, uid, salaVisible, misSalas)` | 2 (mensaje propio, sala visible) | 3 | 1: propio → `false` · 2: sala abierta → `false` · 3: `misSalas.includes(sala)` |
+
+### Casos de prueba
+
+| ID | Función | Entrada | Resultado esperado | Caminos |
+|---|---|---|---|---|
+| CB-NOT-1 | `tokenValido` | `ExponentPushToken[aaa]`, `ExpoPushToken[bbb]` · `undefined`, `''`, `ExponentPushToken[]`, `fcm:abc123` | `true` · `false` | 1, 2 |
+| CB-NOT-2 | `destinatarios` | Remitente con token, dos cuentas con el mismo token, una sin token, una con basura y una válida · lista vacía | `[TOKEN_A, TOKEN_B]` · `[]` | 1, 2, 3 |
+| CB-NOT-3 | `avisoDe` | Ana, "  ¿Hay junta?  " en Moroleón · Escuela · texto de 200 caracteres | `"Moroleón · Escuela"`, `"Ana: ¿Hay junta?"`, `data` con la sala · cuerpo de 100 caracteres + "…" | 1, 2 |
+| CB-NOT-4 | `salaDeNotificacion` | `{Uriangato, Escuela, t}` · `null`, `'Uriangato'` · Celaya, tema "Fiestas", `{}` | `{ region, tema }` sin `t` · `null` · `null` | 3, 1, 2 |
+| CB-NOT-5 | `debeAvisar` | Mensaje propio · de la sala abierta · de una sala ajena · de mi sala sin nada abierto · de mi sala con otra sala abierta | `false`, `false`, `false`, `true`, `true` | 1, 2, 3 |
+
+### Prueba manual (criterio del SRS, RF-24)
+
+**Plan B en Expo Go.** Se necesitan dos teléfonos, A y B, y que **los dos hayan escrito antes**
+en Moroleón · Escuela.
+
+1. B acepta el permiso de notificaciones y se queda en otra pestaña (Mapa) u otra sala.
+2. A escribe en Moroleón · Escuela. En menos de 10 s, a B le llega
+   "Moroleón · Escuela — A: …".
+3. B toca la notificación y se abre el chat en Moroleón · Escuela.
+4. Con B dentro de Moroleón · Escuela, A escribe de nuevo: **no** llega aviso.
+5. B minimiza la app y A escribe enseguida: el aviso llega mientras el sistema no suspenda
+   la app. Hay que anotar cuántos segundos aguanta.
+6. Si B niega el permiso, el chat funciona igual y no hay avisos.
+
+**Plan A en el development build.** Mismos pasos, y además, con la app de B **cerrada**, el aviso
+llega y al tocarlo se abre la sala. En Firebase Console, `usuarios/<uidB>` tiene `pushToken`
+y `salas`.
+
+### Hallazgos
+
+- **El Plan B no cumple el criterio con la app cerrada.** En segundo plano solo funciona
+  mientras Android o iOS no suspendan el JS. El criterio de menos de 10 s en segundo plano
+  queda cubierto completamente solo con el Plan A, en el development build.
+- **Los tokens se pueden leer (para T-28).** `usuarios` lo puede leer cualquiera con sesión,
+  incluido `pushToken`, y la API de Expo acepta envíos sin autenticación. Alguien
+  malintencionado podría mandar notificaciones falsas. La solución es enviar desde una Cloud
+  Function, pero requiere el plan Blaze. Se acepta para el piloto.
+- **Cuentas anteriores sin documento.** Las cuentas creadas antes de tener `usuarios` no
+  pueden guardar `salas` ni `pushToken`, porque `updateDoc` falla si el documento no existe.
+  El error se registra en la consola y el chat sigue funcionando.
+- **Relojes desincronizados.** El Plan B usa `fecha > inicio` con la hora de cada teléfono. Si
+  el reloj de quien envía va atrasado, su mensaje puede no generar aviso.
+- **Límite de la API de Expo.** Acepta máximo 100 mensajes por petición. En el piloto ninguna
+  sala llega a tantos participantes, así que no se envía en partes.
+- **Aviso esperado en la consola.** En Expo Go, `expo-notifications` escribe una advertencia
+  de que el push remoto no está disponible. Es normal y confirma que se usa el Plan B.

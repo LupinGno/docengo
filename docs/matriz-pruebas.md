@@ -90,7 +90,7 @@ método de verificación, el responsable y el resultado.
 | RF-21 | Media | CB-SAL-1 a 3 | A escribe en Uriangato · Escuela; B lo ve ahí y **no** en Yuriria · Escuela | PF | Alexis | ⬜ | ⬜ |
 | RF-22 | Alta | CB-RES-1 a 2 | A publica una duda; B la responde con cita; ambos ven la respuesta en la conversación | PF | Alexis | ⬜ | ⬜ |
 | RF-23 | Baja | — | Enviar un mensaje con imagen y comprobar que el receptor lo recibe | PF | Por asignar | ⬜ | ⬜ |
-| RF-24 | Media | CB-NOT-1 a 5 *(pendiente)* | Con la app en segundo plano en B, A escribe; la notificación llega en menos de 10 s | PF, ME | Alexis | ⬜ | ⬜ |
+| RF-24 | Media | CB-NOT-1 a 5 | Con la app en segundo plano en B, A escribe; la notificación llega en menos de 10 s (Plan B en Expo Go: solo con la app viva; completo con el Plan A en development build) | PF, ME | Alexis | ⬜ | ⬜ |
 | RF-25 | Media | CB-REP-1 a 4 | Reportar un mensaje y verlo en `reportes`; reportar dos veces deja un solo documento | PF, IN | Alexis | ⬜ | ⬜ |
 
 ### 4.6 Lugares destacados — CU-06
@@ -231,4 +231,4 @@ método de verificación, el responsable y el resultado.
 | CB-LUG | 1 a 6 | `__tests__/lib/lugares.test.ts` | RF-26 |
 | CB-FLU | 1 a 4 | `__tests__/lib/filtros-lugares.test.ts` | RF-27 |
 | CB-VLR | 1 a 9 | `__tests__/lib/valoraciones.test.ts` | RF-28, RF-29 |
-| CB-NOT | 1 a 5 *(pendiente)* | — | RF-24 |
+| CB-NOT | 1 a 5 | `__tests__/lib/notificaciones.test.ts` | RF-24 |

@@ -6,6 +6,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   onSnapshot,
   query,
   setDoc,
@@ -45,6 +46,12 @@ export function escucharDoc<T>(nombre: string, id: string, alCambiar: (dato: T |
   );
 }
 
+/** Lee una sola vez los documentos que cumplen las restricciones (sin escuchar cambios). */
+export async function consultar<T>(nombre: string, ...restricciones: QueryConstraint[]): Promise<T[]> {
+  const snap = await getDocs(query(collection(db, nombre), ...restricciones));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as unknown as T);
+}
+
 /** Crea un documento y devuelve su id. No incluyas el campo `id` en `datos`. */
 export async function crear(nombre: string, datos: object): Promise<string> {
   const ref = await addDoc(collection(db, nombre), datos as DocumentData);
@@ -73,4 +80,4 @@ export function eliminar(nombre: string, id: string) {
 }
 
 // Reexportados para no importar de dos lugares
-export { where, orderBy, limit } from 'firebase/firestore';
+export { where, orderBy, limit, arrayUnion } from 'firebase/firestore';

@@ -8,6 +8,18 @@ export type Coordenada = {
 
 export type Localidad = 'Yuriria' | 'Uriangato' | 'Moroleón';
 
+// RF-01 y RF-24. Colección: "usuarios" (id = uid). Se crea en src/services/auth.ts.
+export type Usuario = {
+  id: string;
+  nombre: string;
+  correo: string;
+  rol: 'docente' | 'admin';
+  institucion: string;
+  creado: number;
+  pushToken?: string; // token de Expo (Plan A de RF-24); no existe en Expo Go
+  salas?: string[]; // idSala donde ha escrito: recibe avisos de esas salas (RF-24)
+};
+
 // RF-11: tres categorías de puntos en el mapa. Colección: "puntos"
 export type CategoriaPunto = 'interes' | 'riesgo' | 'referencia';
 

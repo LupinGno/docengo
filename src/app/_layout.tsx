@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { AuthProvider, useAuth } from '../context/AuthContext';
+import Notificaciones from '../components/Notificaciones';
 
 function Guardia() {
   const { usuario, cargando } = useAuth();
@@ -31,6 +32,8 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <Guardia />
+      {/* RF-24: avisos de mensajes nuevos (Alexis) */}
+      <Notificaciones />
     </AuthProvider>
   );
 }
