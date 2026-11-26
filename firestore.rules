@@ -33,10 +33,26 @@ service cloud.firestore {
     }
 
     // puntos, servicios, mensajes, alertas, hospedajes, lugares, paradas
+    // (se excluye "reportes": las reglas se suman con OR y tiene su propio bloque abajo)
     match /{coleccion}/{id} {
-      allow read: if autenticado();
-      allow create: if creaASuNombre();
-      allow update, delete: if esAutor() || esAdmin();
+      allow read: if coleccion != 'reportes' && autenticado();
+      allow create: if coleccion != 'reportes' && creaASuNombre();
+      allow update, delete: if coleccion != 'reportes' && (esAutor() || esAdmin());
+    }
+
+    // RF-25: reportes de mensajes. Id = "<idMensaje>_<uid>" → un reporte por persona por mensaje.
+    // Quien reporta solo puede consultar el suyo; nadie más que el admin los lista ni los modifica.
+    match /reportes/{reporteId} {
+      allow get: if esAdmin()
+                 || (autenticado() && (resource == null || resource.data.autorId == request.auth.uid));
+      allow list: if esAdmin();
+      allow create: if creaASuNombre()
+                    && reporteId == request.resource.data.contenidoId + '_' + request.auth.uid
+                    && request.resource.data.estado == 'pendiente'
+                    // mismas validaciones que src/lib/reportes.ts (MOTIVOS y MAX_DETALLE)
+                    && request.resource.data.motivo in ['Spam', 'Ofensivo o acoso', 'Información falsa', 'Datos personales', 'Otro']
+                    && request.resource.data.detalle.size() <= 300;
+      allow update, delete: if esAdmin();
     }
 
     // Para RF-34 (confirmar/desmentir alertas) Carlos agregará aquí:

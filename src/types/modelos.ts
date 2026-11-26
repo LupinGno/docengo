@@ -33,6 +33,13 @@ export type Servicio = Coordenada & {
   autorId: string;
 };
 
+// RF-22: copia breve del mensaje al que se responde, ver src/lib/respuestas.ts
+export type Cita = {
+  id: string;
+  autorNombre: string;
+  texto: string;
+};
+
 // RF-20 a RF-22. Colección: "mensajes"
 export type Mensaje = {
   id: string;
@@ -43,6 +50,26 @@ export type Mensaje = {
   autorId: string;
   autorNombre: string;
   fecha: number; // Date.now()
+  respuestaA?: Cita; // solo si el mensaje responde a otro (RF-22)
+};
+
+// RF-25 (SRS 6.1, ReporteContenido). Colección: "reportes"
+// Id del documento = idReporte(contenidoId, autorId): un reporte por persona por mensaje.
+export type EstadoReporte = 'pendiente' | 'resuelto';
+
+export type Reporte = {
+  id: string;
+  tipo: 'mensaje';
+  contenidoId: string; // id del mensaje reportado
+  sala: string;
+  textoReportado: string; // copia del mensaje por si su autor lo borra
+  autorMensajeId: string;
+  motivo: string; // uno de MOTIVOS, ver src/lib/reportes.ts
+  detalle: string;
+  autorId: string; // quien reporta
+  estado: EstadoReporte;
+  fecha: number;
+  resueltoPor?: string; // uid del administrador (RF-45)
 };
 
 // RF-30 a RF-34. Colección: "alertas"
