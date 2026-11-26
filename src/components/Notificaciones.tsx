@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { router } from 'expo-router';
 import * as Notifications from 'expo-notifications';
-import { actualizar, escuchar, escucharDoc, where } from '../services/db';
+import { actualizarOCrear, escuchar, escucharDoc, where } from '../services/db';
 import {
   configurarPresentacion,
   notificarLocal,
@@ -13,7 +13,7 @@ import {
   salaEnPantalla,
 } from '../services/notificaciones';
 import { useAuth } from '../context/AuthContext';
-import type { Mensaje, Usuario } from '../types/modelos';
+import type { Mensaje, RegistroAvisos } from '../types/modelos';
 import { avisoDe, debeAvisar, salaDeNotificacion } from '../lib/notificaciones';
 
 type Modo = 'push' | 'local';
@@ -55,7 +55,7 @@ export default function Notificaciones() {
       if (!(await pedirPermiso())) return; // sin permiso no hay avisos; el chat funciona igual
       const token = await obtenerTokenPush();
       if (token) {
-        await actualizar('usuarios', uid, { pushToken: token }).catch((e: Error) =>
+        await actualizarOCrear('avisos', uid, { pushToken: token }).catch((e: Error) =>
           console.warn('[Notificaciones] No se pudo guardar el token:', e.message),
         );
       }
@@ -66,10 +66,10 @@ export default function Notificaciones() {
     };
   }, [uid]);
 
-  // Salas donde he escrito (usuarios/{uid}.salas): de ellas recibo avisos
+  // Salas donde he escrito (avisos/{uid}.salas): de ellas recibo avisos
   useEffect(() => {
     if (!uid) return;
-    return escucharDoc<Usuario>('usuarios', uid, (u) => {
+    return escucharDoc<RegistroAvisos>('avisos', uid, (u) => {
       misSalas.current = u?.salas ?? [];
     });
   }, [uid]);

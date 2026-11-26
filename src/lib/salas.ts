@@ -6,6 +6,9 @@ export const REGIONES: Localidad[] = ['Yuriria', 'Uriangato', 'Moroleón'];
 
 export const TEMAS = ['General', 'Escuela', 'Ambiente laboral', 'Servicios básicos', 'Institucional'];
 
+// Largo máximo de un mensaje; firestore.rules repite el límite (T-28, S6)
+export const MAX_MENSAJE = 1000;
+
 /** Quita acentos, pasa a minúsculas y cambia espacios por guiones: "Servicios básicos" → "servicios-basicos". */
 function normalizar(texto: string): string {
   return texto

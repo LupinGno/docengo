@@ -541,7 +541,7 @@ Se necesitan tres cuentas: A, B y C.
 
 Cuando alguien envía un mensaje en el chat, se avisa a los **participantes de esa sala**: las
 personas que alguna vez escribieron en ella. Al enviar, la sala se agrega a
-`usuarios/{uid}.salas` con `arrayUnion`. Los destinatarios salen de una sola consulta,
+`avisos/{uid}.salas` con `arrayUnion`. Los destinatarios salen de una sola consulta,
 `where('salas', 'array-contains', sala)`, que no necesita índice compuesto. Nunca se avisa a
 quien envía, ni a quien ya tiene esa sala abierta en pantalla.
 
@@ -555,7 +555,7 @@ el modo:
 
 | Modo | Cuándo | Cómo funciona | Limitación |
 |---|---|---|---|
-| **A · push remoto** | Hay token de Expo (development build con `extra.eas.projectId` en `app.json`) | El token se guarda en `usuarios/{uid}.pushToken`. Quien envía hace `POST https://exp.host/--/api/v2/push/send` con los tokens de los participantes. | Necesita EAS y, en Android, credenciales de FCM V1. |
+| **A · push remoto** | Hay token de Expo (development build con `extra.eas.projectId` en `app.json`) | El token se guarda en `avisos/{uid}.pushToken`. Quien envía hace `POST https://exp.host/--/api/v2/push/send` con los tokens de los participantes. | Necesita EAS y, en Android, credenciales de FCM V1. |
 | **B · local** | No hay token. En **Expo Go para Android** el push remoto no existe desde el SDK 53; también aplica si no hay `projectId` | La app escucha los mensajes con `fecha >` el momento en que abrió y muestra una notificación local con `scheduleNotificationAsync`. | Solo funciona mientras el JS sigue vivo: con la app abierta en otra pestaña o sala, o unos momentos después de mandarla a segundo plano. **Con la app cerrada no llega nada.** |
 
 Los modos se pueden mezclar. Quien está en Expo Go siempre intenta enviar push a los
@@ -567,7 +567,7 @@ alguien en Expo Go.
 | Función | Decisiones | V(G) | Caminos independientes |
 |---|---|---|---|
 | `tokenValido(token)` | 1 (`typeof === 'string' && regex`) | 2 | 1: token de Expo → `true` · 2: otro valor → `false` |
-| `destinatarios(usuarios, remitenteUid)` | 2 (`for`, `id !== remitente && tokenValido`) | 3 | 1: lista vacía · 2: usuario descartado · 3: token agregado (el `Set` quita repetidos) |
+| `destinatarios(registros, remitenteUid)` | 2 (`for`, `id !== remitente && tokenValido`) | 3 | 1: lista vacía · 2: usuario descartado · 3: token agregado (el `Set` quita repetidos) |
 | `avisoDe(mensaje)` | 1 (`body.length > MAX_CUERPO`) | 2 | 1: cuerpo corto · 2: cuerpo recortado con "…" |
 | `salaDeNotificacion(data)` | 2 (no es objeto, región o tema inválidos) | 3 | 1: no es objeto → `null` · 2: sala inexistente → `null` · 3: sala real → `{ region, tema }` |
 | `debeAvisar(m, uid, salaVisible, misSalas)` | 2 (mensaje propio, sala visible) | 3 | 1: propio → `false` · 2: sala abierta → `false` · 3: `misSalas.includes(sala)` |
@@ -597,7 +597,7 @@ en Moroleón · Escuela.
 6. Si B niega el permiso, el chat funciona igual y no hay avisos.
 
 **Plan A en el development build.** Mismos pasos, y además, con la app de B **cerrada**, el aviso
-llega y al tocarlo se abre la sala. En Firebase Console, `usuarios/<uidB>` tiene `pushToken`
+llega y al tocarlo se abre la sala. En Firebase Console, `avisos/<uidB>` tiene `pushToken`
 y `salas`.
 
 ### Hallazgos
@@ -605,13 +605,14 @@ y `salas`.
 - **El Plan B no cumple el criterio con la app cerrada.** En segundo plano solo funciona
   mientras Android o iOS no suspendan el JS. El criterio de menos de 10 s en segundo plano
   queda cubierto completamente solo con el Plan A, en el development build.
-- **Los tokens se pueden leer (para T-28).** `usuarios` lo puede leer cualquiera con sesión,
-  incluido `pushToken`, y la API de Expo acepta envíos sin autenticación. Alguien
-  malintencionado podría mandar notificaciones falsas. La solución es enviar desde una Cloud
-  Function, pero requiere el plan Blaze. Se acepta para el piloto.
-- **Cuentas anteriores sin documento.** Las cuentas creadas antes de tener `usuarios` no
-  pueden guardar `salas` ni `pushToken`, porque `updateDoc` falla si el documento no existe.
-  El error se registra en la consola y el chat sigue funcionando.
+- **Los tokens se pueden leer.** `avisos` lo puede leer cualquiera con sesión, incluido
+  `pushToken`, y la API de Expo acepta envíos sin autenticación. Alguien malintencionado
+  podría mandar notificaciones falsas. La solución es enviar desde una Cloud Function, pero
+  requiere el plan Blaze. Se acepta para el piloto (`docs/revision-seguridad.md`, H7).
+- **Corregido en T-28:** las salas y el token estaban en `usuarios`, que cualquiera con sesión
+  podía leer junto con el **correo** (RNF-05). Ahora viven en `avisos/{uid}` y `usuarios`
+  solo lo lee su dueño o un admin. Como `avisos` se escribe con `actualizarOCrear` (`setDoc`
+  con `merge`), también funciona para cuentas que no tienen documento en `usuarios`.
 - **Relojes desincronizados.** El Plan B usa `fecha > inicio` con la hora de cada teléfono. Si
   el reloj de quien envía va atrasado, su mensaje puede no generar aviso.
 - **Límite de la API de Expo.** Acepta máximo 100 mensajes por petición. En el piloto ninguna

@@ -1,7 +1,7 @@
 // RF-24: notificaciones de mensajes nuevos del chat.
 // Lógica pura: no depende de React, Expo ni Firebase, por eso es fácil de probar.
-// Se avisa solo a los participantes de la sala (usuarios con la sala en `salas`), nunca a quien envía.
-import type { Localidad, Mensaje, Usuario } from '../types/modelos';
+// Se avisa solo a los participantes de la sala (avisos/{uid} con la sala en `salas`), nunca a quien envía.
+import type { Localidad, Mensaje, RegistroAvisos } from '../types/modelos';
 import { REGIONES, TEMAS, tituloSala } from './salas';
 
 export const MAX_CUERPO = 100;
@@ -20,9 +20,9 @@ export function tokenValido(token: unknown): token is string {
 }
 
 /** Tokens a los que se envía el push: sin quien envía, sin tokens inválidos y sin repetidos. */
-export function destinatarios(usuarios: Pick<Usuario, 'id' | 'pushToken'>[], remitenteUid: string): string[] {
+export function destinatarios(registros: Pick<RegistroAvisos, 'id' | 'pushToken'>[], remitenteUid: string): string[] {
   const tokens = new Set<string>();
-  for (const u of usuarios) {
+  for (const u of registros) {
     if (u.id !== remitenteUid && tokenValido(u.pushToken)) tokens.add(u.pushToken);
   }
   return [...tokens];

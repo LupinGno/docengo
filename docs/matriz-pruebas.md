@@ -12,8 +12,11 @@ método de verificación, el responsable y el resultado.
 > [`registro-integracion.md`](registro-integracion.md). Su resultado se pasa aquí a la
 > columna ✅/❌.
 >
+> **Seguridad (T-28):** las revisiones S1–S11 (RNF-01 a RNF-06, RN-04, RN-06 y SRS 6.2) y los
+> casos de Rules Playground están en [`revision-seguridad.md`](revision-seguridad.md).
+>
 > **Pendiente:** completar con el Anexo B del plan de trabajo del equipo (los demás flujos
-> F2–F8 y las revisiones S1–S11 de T-28) cuando esté disponible.
+> F2–F8) cuando esté disponible.
 
 ## Cómo se usa
 
