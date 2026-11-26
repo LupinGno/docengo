@@ -51,7 +51,8 @@
     "lint": "expo lint",
     "test": "jest",
     "test:cobertura": "jest --coverage",
-    "revisar": "tsc --noEmit && expo lint && jest --coverage"
+    "revisar": "tsc --noEmit && expo lint && jest --coverage",
+    "cargar:lugares": "node --env-file-if-exists=.env.local scripts/cargar-lugares.mjs"
   },
   "private": true,
   "jest": {
