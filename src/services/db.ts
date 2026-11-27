@@ -5,6 +5,8 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
+  getDocs,
   onSnapshot,
   query,
   setDoc,
@@ -33,15 +35,24 @@ export function escuchar<T>(
 }
 
 /**
- * Escucha UN documento en tiempo real. Si no existe, entrega null.
- *   useEffect(() => escucharUno<Punto>('puntos', id, setPunto), [id]);
+ * Escucha un solo documento en tiempo real. Llama a alCambiar(null) si no existe o si se borró.
+ *   useEffect(() => escucharDoc<Lugar>('lugares', id, setLugar), [id]);
  */
-export function escucharUno<T>(nombre: string, id: string, alCambiar: (dato: T | null) => void) {
+export function escucharDoc<T>(nombre: string, id: string, alCambiar: (dato: T | null) => void) {
   return onSnapshot(
     doc(db, nombre, id),
-    (d) => alCambiar(d.exists() ? ({ id: d.id, ...d.data() } as unknown as T) : null),
+    (snap) => alCambiar(snap.exists() ? ({ id: snap.id, ...snap.data() } as unknown as T) : null),
     (error) => console.warn(`[Firestore:${nombre}/${id}]`, error.message),
   );
+}
+
+/** Alias de escucharDoc (T-00): lo usan la sesión, los puntos, los servicios y las paradas. */
+export const escucharUno = escucharDoc;
+
+/** Lee una sola vez los documentos que cumplen las restricciones (sin escuchar cambios). */
+export async function consultar<T>(nombre: string, ...restricciones: QueryConstraint[]): Promise<T[]> {
+  const snap = await getDocs(query(collection(db, nombre), ...restricciones));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as unknown as T);
 }
 
 /** Crea un documento y devuelve su id. No incluyas el campo `id` en `datos`. */
@@ -55,6 +66,28 @@ export function guardar(nombre: string, id: string, datos: object) {
   return setDoc(doc(db, nombre, id), datos as DocumentData);
 }
 
+/**
+ * Crea un documento con un id elegido por la app (ej. un reporte por persona por mensaje).
+ * Si el documento ya existe, Firestore lo trata como actualización y aplica la regla de update.
+ */
+export function crearConId(nombre: string, id: string, datos: object) {
+  return setDoc(doc(db, nombre, id), datos as DocumentData);
+}
+
+/** true si el documento existe. */
+export async function existe(nombre: string, id: string): Promise<boolean> {
+  return (await getDoc(doc(db, nombre, id))).exists();
+}
+
+/**
+ * Combina campos en un documento y lo crea si no existe (setDoc con merge).
+ * A diferencia de `actualizar`, no falla con documentos nuevos; a diferencia de `guardar`,
+ * no borra los campos que no se mandan.
+ */
+export function actualizarOCrear(nombre: string, id: string, cambios: object) {
+  return setDoc(doc(db, nombre, id), cambios as DocumentData, { merge: true });
+}
+
 export function actualizar(nombre: string, id: string, cambios: object) {
   return updateDoc(doc(db, nombre, id), cambios as DocumentData);
 }
@@ -64,4 +97,4 @@ export function eliminar(nombre: string, id: string) {
 }
 
 // Reexportados para no importar de dos lugares
-export { where, orderBy, limit } from 'firebase/firestore';
+export { where, orderBy, limit, arrayUnion } from 'firebase/firestore';

@@ -1,5 +1,5 @@
 // Caja blanca: puedeEditar, V(G) = 3 → 3 caminos + 1 caso de condición.
-// Ver docs/pruebas-caja-blanca.md, sección 7.
+// Ver docs/pruebas-caja-blanca.md, sección 16.
 import { puedeEditar } from '../../src/lib/permisos';
 
 test('CB-PRM-1 sin sesión no puede editar', () => {

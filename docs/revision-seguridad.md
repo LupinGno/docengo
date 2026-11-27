@@ -1,12 +1,12 @@
 # Revisión de seguridad de DocenGo (T-28)
 
 Aquí revisamos qué tan segura es la app y si cuida la privacidad de los docentes. Son 11
-revisiones . Por cada una anotamos lo que encontramos, lo que ya se corrigió y lo que
+revisiones (S1 a S11). Por cada una anotamos lo que encontramos, lo que ya se corrigió y lo que
 falta acordar con Carlos.
 
 | Dato | Valor |
 |---|---|
-| Responsables | Alexis, Jose y Carlos  |
+| Responsables | Alexis y Carlos (José agregó el hallazgo H11) |
 | Rama revisada | `feat/t28-seguridad` (incluye `main` y las ramas T-04 a T-27) |
 | De dónde salen | SRS v1.0: 5.1 (RNF-01 a RNF-06), 6.2 (cuánto tiempo se guardan los datos) y 7 (RN-01 a RN-08) |
 | Tipos de prueba (SRS 10.1) | **IN** inspección (revisar sin correr la app) y **PS** prueba de seguridad |
