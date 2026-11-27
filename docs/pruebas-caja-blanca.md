@@ -645,6 +645,166 @@ Caso complementario (cobertura de condiciones): CB-PRM-4, ni autor ni admin → 
 
 ---
 
+## 17. Ficha de punto (RF-12): `contactoComoEnlace` y pantalla `punto/[id].tsx`
+
+### 17.1 `contactoComoEnlace` (src/lib/contacto.ts)
+
+```ts
+export function contactoComoEnlace(contacto) {
+  if (!contacto) return null;                                   // D1
+  const digitos = contacto.replace(/\D/g, '');
+  if (digitos.length === 10) return `tel:${digitos}`;           // D2
+  if (contacto.includes('@')) return `mailto:${contacto.trim()}`; // D3
+  return null;
+}
+```
+
+**V(G) = 1 + 3 `if` = 4.**
+
+| Camino | Recorrido | Entrada | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|---|
+| C1 | D1 sí | `undefined` o `''` | `null` | CB-CON-1 | Pasa |
+| C2 | D1 no, D2 sí | `'445-123-4567'`, `'445 123 45 67'` | `'tel:4451234567'` | CB-CON-2 | Pasa |
+| C3 | D2 no, D3 sí | `' renta@correo.com '` | `'mailto:renta@correo.com'` | CB-CON-3 | Pasa |
+| C4 | D2 no, D3 no | `'Preguntar en la tienda'` | `null` | CB-CON-4 | Pasa |
+
+Valor límite: CB-CON-5, 9 dígitos no se toma como teléfono.
+
+### 17.2 Componente `Contenido` de la ficha (src/app/punto/[id].tsx)
+
+```tsx
+if (punto === undefined) return <Spinner/>;            // D1 cargando
+if (punto === null) return <NoDisponible/>;            // D2 no existe
+punto.descripcion || 'Sin descripción.'                // D3
+punto.contacto ? <SeccionContacto/> : null             // D4
+enlace ? <Boton/> : null                               // D5
+enlace.startsWith('tel:') ? 'Llamar' : 'Escribir correo' // D6
+editable ? <EditarPunto/> : null                       // D7 (agregada en T-02)
+```
+
+**V(G) = 1 + 7 = 8** (ESLint reporta 8). En T-01 era 7; T-02 agregó D7 para el botón **Editar punto**. Pruebas de componente con Firestore simulado (`jest.mock('../../src/services/db')`):
+
+| Camino | Recorrido | Datos del punto | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|---|
+| C1 | D1 sí | todavía no llega | sin datos en pantalla | CB-FPT-4 | Pasa |
+| C2 | D2 sí | no existe | "Este punto ya no está disponible." | CB-FPT-3 | Pasa |
+| C3 | camino base: D3 con texto, D4 no, D5 no | con descripción, sin contacto | sin sección ni botón de contacto | CB-FPT-2 | Pasa |
+| C4 | D4 sí, D5 sí, D6 tel | contacto `'445 123 4567'` | 4 datos + **Llamar** abre `tel:4451234567` | CB-FPT-1 | Pasa |
+| C5 | D3 vacío, D6 correo | sin descripción, contacto correo | "Sin descripción." + **Escribir correo** | CB-FPT-5 | Pasa |
+| C6 | D4 sí, D5 no | contacto `'Preguntar en la tienda'` | se muestra el texto, sin botón | CB-FPT-6 | Pasa |
+
+| C7 | D7 sí (autor) | sesión del autor | aparece **Editar punto** y lleva a `/punto/editar/p1` | CB-FPT-7 | Pasa |
+| C8 | D7 sí (admin) | sesión de admin, punto ajeno | aparece **Editar punto** | CB-FPT-9 | Pasa |
+
+CB-FPT-8 confirma el lado falso de D7 con un docente que no es el autor. Las 9 pruebas cubren las 14 ramas (los dos lados de D1 a D7).
+
+---
+
+## 18. Registrar y editar puntos (RF-13)
+
+### 18.1 `validarPunto` (src/lib/puntos.ts)
+
+```ts
+if (!p.nombre.trim()) return 'Escribe el nombre del punto.';                          // D1
+if (!CATEGORIAS_PUNTO.includes(p.categoria)) return 'Elige una categoría.';            // D2
+if (p.categoria === 'riesgo' && !p.descripcion.trim()) return 'Describe por qué...';  // D3 && D4
+if (!dentroDeRegion(p)) return 'El punto está fuera de la región piloto.';            // D5
+return null;
+```
+
+```mermaid
+flowchart TD
+  I([Inicio]) --> D1{D1 nombre vacío?}
+  D1 -- sí --> E1[error nombre] --> F([Fin])
+  D1 -- no --> D2{D2 categoría inválida?}
+  D2 -- sí --> E2[error categoría] --> F
+  D2 -- no --> D3{D3 es riesgo?}
+  D3 -- no --> D5{D5 fuera de región?}
+  D3 -- sí --> D4{D4 descripción vacía?}
+  D4 -- sí --> E3[error descripción] --> F
+  D4 -- no --> D5
+  D5 -- sí --> E4[error región] --> F
+  D5 -- no --> OK[null] --> F
+```
+
+**V(G) = 1 + 4 `if` + 1 `&&` = 6.**
+
+| Camino | Recorrido | Entrada | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|---|
+| C1 | D1 sí | nombre `'   '` | error de nombre | CB-PTO-1 | Pasa |
+| C2 | D2 sí | categoría `'tienda'` | error de categoría | CB-PTO-2 | Pasa |
+| C3 | D3 sí, D4 sí | riesgo, descripción `'  '` | error de descripción | CB-PTO-3 | Pasa |
+| C4 | D3 no, D5 no | interés sin descripción | `null` | CB-PTO-4 | Pasa |
+| C5 | D3 sí, D4 no, D5 sí | riesgo con descripción, lat 21.0 | error de región | CB-PTO-5 | Pasa |
+| C6 | D3 sí, D4 no, D5 no | riesgo con descripción en Yuriria | `null` | CB-PTO-6 | Pasa |
+
+La regla "riesgo exige descripción" (C3) apoya RF-31: toda zona de riesgo tendrá texto en su alerta.
+
+### 18.2 `dentroDeRegion` (src/lib/puntos.ts), valores límite
+
+`latMin ≤ latitud ≤ latMax && lonMin ≤ longitud ≤ lonMax`. **V(G) = 1 + 3 `&&` = 4.** Cada comparación se prueba en su borde exacto y 0.0001° afuera:
+
+| Caso | Entrada | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|
+| Bordes exactos | (latMin, lonMax) y (latMax, lonMin) | `true` | CB-PTO-7 | Pasa |
+| Latitud debajo | latMin − 0.0001 | `false` | CB-PTO-8 | Pasa |
+| Latitud arriba | latMax + 0.0001 | `false` | CB-PTO-9 | Pasa |
+| Longitud debajo | lonMin − 0.0001 | `false` | CB-PTO-10 | Pasa |
+| Longitud arriba | lonMax + 0.0001 | `false` | CB-PTO-11 | Pasa |
+
+### 18.3 `coordenadaDeParametros` (src/lib/puntos.ts)
+
+Convierte los parámetros de la ruta `/punto/nuevo?lat=...&lon=...` en números. Protege contra un enlace mal formado.
+
+`if (!lat || !lon || !Number.isFinite(latitud) || !Number.isFinite(longitud)) return null;` → **V(G) = 1 + `if` + 3 `||` = 5.**
+
+| Camino | Condición que decide | Entrada | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|---|
+| C1 | todas falsas | `'20.21'`, `'-101.13'` | `{ 20.21, -101.13 }` | CB-PTO-12 | Pasa |
+| C2 | `!lat` | `undefined` | `null` | CB-PTO-13 | Pasa |
+| C3 | `!lon` | `''` | `null` | CB-PTO-14 | Pasa |
+| C4 | latitud no es número | `'abc'` | `null` | CB-PTO-15 | Pasa |
+| C5 | longitud no es número | `'xyz'` | `null` | CB-PTO-16 | Pasa |
+
+### 18.4 `formularioInicial` (src/lib/puntos.ts)
+
+Un `??` por campo más `inicial ?? {}`: **V(G) = 6.** Con dos casos se cubren los dos lados de los 5 `??`: CB-PTO-17 (sin valores, punto nuevo) y CB-PTO-18 (todos los valores, editar).
+
+### 18.5 `guardar()` de FormularioPunto (src/components/FormularioPunto.tsx)
+
+```ts
+const problema = validarPunto(...);
+if (problema) { setError(problema); return; }          // D1
+try { await onGuardar({...textos sin espacios, latitud, longitud}); }
+catch (err) { setError(mensajeDeError(err?.code)); }   // D2 catch, D3 ?.
+```
+
+**V(G) = 4.** Componente completo `FormularioPunto`: V(G) = 5 (antes 13, ver H12).
+
+| Camino | Recorrido | Caso | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|---|
+| C1 | D1 sí | campos vacíos | error visible, `onGuardar` no se llama | CB-FRM-1 | Pasa |
+| C2 | D1 no, sin excepción | nombre con espacios, Referencia, teléfono | se guarda sin espacios sobrantes y con la coordenada | CB-FRM-2 | Pasa |
+| C3 | D2 sí, D3 err con código | Firestore responde `permission-denied` | "Ocurrió un error. Intenta de nuevo." | CB-FRM-3 | Pasa |
+
+Casos complementarios: CB-FRM-4 (al elegir Riesgo la descripción se marca obligatoria), CB-FRM-5 (no se puede guardar dos veces mientras guarda), CB-FRM-6 (solo se usan latitud y longitud de `coordenada`; prueba de regresión del error encontrado al programar la edición).
+
+### 18.6 Pantallas `punto/nuevo.tsx` y `punto/editar/[id].tsx`
+
+| Pantalla | V(G) | Caso | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|---|
+| nuevo | 2 | coordenada inválida | "Ubicación no válida", sin formulario | CB-NVP-1 | Pasa |
+| nuevo | 2 | coordenada válida | `crear('puntos', {..., autorId: 'u1'})` y regresa | CB-NVP-2 | Pasa |
+| editar | 9 | docente que no es el autor | aviso, sin formulario | CB-EDP-1 | Pasa |
+| editar | | el autor guarda | `actualizar` sin latitud ni longitud | CB-EDP-2 | Pasa |
+| editar | | eliminar → Cancelar | no se borra | CB-EDP-3 | Pasa |
+| editar | | eliminar → Eliminar | se borra y regresa al mapa | CB-EDP-4 | Pasa |
+| editar | | el punto no existe | "Este punto ya no está disponible." | CB-EDP-5 | Pasa |
+| editar | | cargando | sin formulario ni aviso | CB-EDP-6 | Pasa |
+| editar | | admin con punto ajeno | formulario visible | CB-EDP-7 | Pasa |
+
+---
+
 ## 24. Hallazgos de las tareas de José (T-00 a T-17)
 
 Se numeran desde H11 para no repetir los de `revision-seguridad.md` (H1 a H10).
@@ -652,3 +812,5 @@ Se numeran desde H11 para no repetir los de `revision-seguridad.md` (H1 a H10).
 | ID | Ubicación | Descripción | Decisión |
 |---|---|---|---|
 | H11 | firestore.rules, regla general `match /{coleccion}/{id}` | La regla general también aplicaba a `usuarios`: un usuario podía crear su documento con `{ rol: "admin", autorId: <su uid> }` y quedar como administrador. Encontrado al revisar las reglas contra RF-43. | Corregido en T-00: la regla general ya no se aplica a `usuarios` (se agregó a `tieneBloquePropio`). Se comprueba en el Área de pruebas de reglas con el caso 21 de `revision-seguridad.md` (crear el perfil con rol admin debe salir Denegado). |
+| H12 | FormularioPunto.tsx | La regla `complexity` de ESLint rechazó el componente con V(G) = 13 (cuatro `??` en los `useState` y los chips de categoría dentro del mismo componente). | Refactorizado en T-02: valores iniciales en `formularioInicial` (src/lib, con pruebas) y chips en `SelectorCategoria`. V(G) bajó a 5. |
+| H13 | punto/editar/[id].tsx | Al programar la edición se pasaba el punto completo como `coordenada`; al guardar, sus datos viejos (nombre, categoría) se esparcían después de los nuevos y los pisaban. Encontrado al revisar el código antes de probar. | Corregido en T-02: la pantalla pasa solo latitud y longitud y el formulario solo toma esas dos. Prueba de regresión CB-FRM-6. |

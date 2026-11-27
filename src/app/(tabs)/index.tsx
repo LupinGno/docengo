@@ -1,8 +1,10 @@
 // RF-10, RF-11, RF-14, RF-15: mapa con puntos de interés, riesgo y referencia.
-// Responsable: José. Siguiente paso: ficha de detalle (RF-12) y alta de puntos (RF-13).
+// Responsable: José. Al tocar el globo de un punto se abre su ficha (RF-12).
+// Mantener presionado el mapa abre el formulario de punto nuevo (RF-13).
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import { router } from 'expo-router';
 import * as Location from 'expo-location';
 import { escuchar } from '../../services/db';
 import type { CategoriaPunto, Punto } from '../../types/modelos';
@@ -32,7 +34,15 @@ export default function Mapa() {
 
   return (
     <View style={{ flex: 1 }}>
-      <MapView style={StyleSheet.absoluteFill} initialRegion={REGION_PILOTO} showsUserLocation={conUbicacion}>
+      <MapView
+        style={StyleSheet.absoluteFill}
+        initialRegion={REGION_PILOTO}
+        showsUserLocation={conUbicacion}
+        onLongPress={(e) => {
+          const { latitude, longitude } = e.nativeEvent.coordinate;
+          router.push({ pathname: '/punto/nuevo', params: { lat: String(latitude), lon: String(longitude) } });
+        }}
+      >
         {puntos
           .filter((p) => visibles.includes(p.categoria))
           .map((p) => (
@@ -42,6 +52,7 @@ export default function Mapa() {
               title={p.nombre}
               description={p.descripcion}
               pinColor={colorCategoria[p.categoria]}
+              onCalloutPress={() => router.push(`/punto/${p.id}`)}
             />
           ))}
       </MapView>
@@ -61,9 +72,11 @@ export default function Mapa() {
         })}
       </View>
 
-      {!conUbicacion && (
-        <Text style={styles.aviso}>Activa la ubicación para ver tu posición (opcional).</Text>
-      )}
+      <Text style={styles.aviso}>
+        {conUbicacion
+          ? 'Mantén presionado el mapa para agregar un punto.'
+          : 'Activa la ubicación para ver tu posición (opcional). Mantén presionado el mapa para agregar un punto.'}
+      </Text>
     </View>
   );
 }
