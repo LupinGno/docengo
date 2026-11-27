@@ -37,7 +37,8 @@ service cloud.firestore {
     // Colecciones con su propio bloque abajo. Se excluyen de la regla genérica porque
     // Firestore suma las reglas con OR: sin la exclusión, la genérica las dejaría pasar.
     function tieneBloquePropio(coleccion) {
-      return coleccion in ['reportes', 'lugares', 'mensajes', 'avisos'];
+      // 'usuarios' también: sin esto la genérica dejaba crear un perfil con rol admin (hallazgo H11, T-00).
+      return coleccion in ['usuarios', 'reportes', 'lugares', 'mensajes', 'avisos'];
     }
 
     // puntos, servicios, alertas, hospedajes, paradas
@@ -129,6 +130,14 @@ service cloud.firestore {
                     && request.resource.data.motivo in ['Spam', 'Ofensivo o acoso', 'Información falsa', 'Datos personales', 'Otro']
                     && request.resource.data.detalle.size() <= 300;
       allow update, delete: if esAdmin();
+    }
+
+    // RF-42: cualquier docente actualiza solo los horarios de una parada (T-17).
+    // El resto de la parada lo cambia su autor o un admin (regla genérica).
+    match /paradas/{id} {
+      allow update: if autenticado()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['horarios', 'duracionMin', 'actualizadoPor', 'actualizado']);
     }
 
     // RF-34: confirmar/desmentir alertas (T-06).

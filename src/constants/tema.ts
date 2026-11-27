@@ -17,6 +17,12 @@ export const colorCategoria: Record<CategoriaPunto, string> = {
   referencia: '#2E7D32',
 };
 
+export const etiquetaCategoria: Record<CategoriaPunto, string> = {
+  interes: 'Interés',
+  riesgo: 'Riesgo',
+  referencia: 'Referencia',
+};
+
 // RF-32: un color por nivel de riesgo
 export const colorNivel: Record<NivelRiesgo, string> = {
   alto: '#C62828',
@@ -31,6 +37,9 @@ export const REGION_PILOTO = {
   latitudeDelta: 0.18,
   longitudeDelta: 0.18,
 };
+
+// Caja que cubre Yuriria, Uriangato, Moroleón y sus comunidades (validación de coordenadas)
+export const REGION_LIMITES = { latMin: 19.95, latMax: 20.4, lonMin: -101.4, lonMax: -100.95 };
 
 export const estilos = StyleSheet.create({
   contenedor: { flex: 1, padding: 20, backgroundColor: colores.fondo },
