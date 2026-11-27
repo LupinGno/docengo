@@ -10,7 +10,7 @@ export const colores = {
   error: '#C62828',
 };
 
-// color de cada categoría de punto de interés, riesgo o referencia
+// RF-11: un color por categoría de punto
 export const colorCategoria: Record<CategoriaPunto, string> = {
   interes: '#1565C0',
   riesgo: '#C62828',
@@ -23,14 +23,14 @@ export const etiquetaCategoria: Record<CategoriaPunto, string> = {
   referencia: 'Referencia',
 };
 
-// color por nivel de riesgo
+// RF-32: un color por nivel de riesgo
 export const colorNivel: Record<NivelRiesgo, string> = {
   alto: '#C62828',
   medio: '#EF6C00',
   bajo: '#F9A825',
 };
 
-// Región piloto
+// Región piloto: Yuriria, Uriangato y Moroleón
 export const REGION_PILOTO = {
   latitude: 20.17,
   longitude: -101.16,
@@ -38,7 +38,7 @@ export const REGION_PILOTO = {
   longitudeDelta: 0.18,
 };
 
-// Caja que cubre Yuriria
+// Caja que cubre Yuriria, Uriangato, Moroleón y sus comunidades (validación de coordenadas)
 export const REGION_LIMITES = { latMin: 19.95, latMax: 20.4, lonMin: -101.4, lonMax: -100.95 };
 
 export const estilos = StyleSheet.create({

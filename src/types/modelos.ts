@@ -1,4 +1,5 @@
-// Modelos de datos de DocenGo
+// Modelos de datos de DocenGo (SRS, sección 6.1).
+// Cada tipo corresponde a una colección de Firestore con el mismo nombre en plural.
 
 export type Coordenada = {
   latitud: number;
@@ -7,24 +8,7 @@ export type Coordenada = {
 
 export type Localidad = 'Yuriria' | 'Uriangato' | 'Moroleón';
 
-// Colección: "usuarios" 
-export type Usuario = {
-  id: string;
-  nombre: string;
-  correo: string;
-  rol: 'docente' | 'admin';
-  institucion: string;
-  creado: number;
-};
-
-//Colección: "avisos" (id = uid). Separada de "usuarios" para no exponer el correo 
-export type RegistroAvisos = {
-  id: string;
-  salas?: string[]; // idSala donde ha escrito
-  pushToken?: string; // token de Expo 
-};
-
-// Colección: "usuarios" 
+// RF-01, RF-04, RF-43. Colección: "usuarios" (el id del documento es el uid)
 export type Rol = 'docente' | 'admin';
 
 export type Perfil = {
@@ -33,13 +17,13 @@ export type Perfil = {
   correo: string;
   rol: Rol;
   institucion?: string;
-  preferencias?: Record<string, unknown>;
+  preferencias?: Record<string, unknown>; // se define mejor en T-05
 };
 
 /** Lo mínimo para decidir permisos: quién es y qué rol tiene. */
 export type Actor = { uid: string; rol: Rol };
 
-//tres categorías de puntos en el mapa. Colección: "puntos"
+// RF-11: tres categorías de puntos en el mapa. Colección: "puntos"
 export type CategoriaPunto = 'interes' | 'riesgo' | 'referencia';
 
 export type Punto = Coordenada & {
@@ -51,7 +35,7 @@ export type Punto = Coordenada & {
   autorId: string;
 };
 
-//Colección: "servicios"
+// RF-16 a RF-19. Colección: "servicios"
 export type TipoServicio = 'farmacia' | 'papeleria' | 'supermercado' | 'parada';
 
 export type Servicio = Coordenada & {
@@ -64,45 +48,17 @@ export type Servicio = Coordenada & {
   autorId: string;
 };
 
-// copia breve del mensaje al que se responde, ver src/lib/respuestas.ts
-export type Cita = {
-  id: string;
-  autorNombre: string;
-  texto: string;
-};
-
-// Colección: "mensajes"
+// RF-20 a RF-22. Colección: "mensajes"
 export type Mensaje = {
   id: string;
   texto: string;
-  sala: string; // idSala(region, tema)
-  region: Localidad;
-  tema: string;
+  sala: string;
   autorId: string;
   autorNombre: string;
   fecha: number; // Date.now()
-  respuestaA?: Cita; 
 };
 
-//  Colección: "reportes"
-export type EstadoReporte = 'pendiente' | 'resuelto';
-
-export type Reporte = {
-  id: string;
-  tipo: 'mensaje';
-  contenidoId: string; // id del mensaje reportado
-  sala: string;
-  textoReportado: string; // copia del mensaje por si su autor lo borra
-  autorMensajeId: string;
-  motivo: string; // uno de MOTIVOS, ver src/lib/reportes.ts
-  detalle: string;
-  autorId: string; // quien reporta
-  estado: EstadoReporte;
-  fecha: number;
-  resueltoPor?: string; // uid del administrador 
-};
-
-// "alertas"
+// RF-30 a RF-34. Colección: "alertas"
 export type TipoAlerta = 'ambiente_toxico' | 'crimen_organizado' | 'baja_seguridad';
 export type NivelRiesgo = 'alto' | 'medio' | 'bajo';
 
@@ -118,7 +74,7 @@ export type Alerta = Coordenada & {
   fecha: number;
 };
 
-//  "hospedajes"
+// RF-35 a RF-38. Colección: "hospedajes"
 export type Hospedaje = Coordenada & {
   id: string;
   titulo: string;
@@ -130,29 +86,17 @@ export type Hospedaje = Coordenada & {
   autorId: string;
 };
 
-// Colección: "lugares"
+// RF-26 a RF-29. Colección: "lugares"
 export type Lugar = Coordenada & {
   id: string;
   nombre: string;
-  categoria: string; // una de CATEGORIAS_LUGAR, ver src/lib/lugares.ts
+  categoria: string;
   localidad: Localidad;
   descripcion: string;
   autorId: string;
-  autorNombre: string;
-  fecha: number; // Date.now()
 };
 
-//  Subcolección: "lugares/{lugarId}/valoraciones".
-export type Valoracion = {
-  id: string; // = autorId
-  estrellas: number; // entero del 1 al 5
-  comentario: string; // opcional
-  autorId: string;
-  autorNombre: string;
-  fecha: number;
-};
-
-//  Colección: "paradas"
+// RF-39 a RF-42. Colección: "paradas"
 export type Parada = Coordenada & {
   id: string;
   nombre: string;

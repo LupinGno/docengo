@@ -4,7 +4,7 @@ Cada decisión de diseño que afecte requisitos, datos o pruebas se anota aquí,
 
 | Fecha | Decisión | Motivo | RF | Tarea |
 |---|---|---|---|---|
-| 17/11/2026 | Firebase usamos (Auth + Firestore) en lugar de Node.js + MySQL | Autenticación y tiempo real sin servidor propio; plazo de 3 semanas | RF-05, RF-20 | Base |
+| 17/11/2026 | Firebase (Auth + Firestore) en lugar de Node.js + MySQL | Autenticación y tiempo real sin servidor propio; plazo de 3 semanas | RF-05, RF-20 | Base |
 | 17/11/2026 | Trunk-based development con feature flags | Integrar a diario sin mostrar módulos incompletos en el piloto | — | Base |
 | 22/11/2026 | Todas las reglas de Firestore de la semana se centralizan en T-00 | Evitar conflictos de merge en `firestore.rules` y publicar una sola vez | Varios | T-00 |
 | 22/11/2026 | La regla general de Firestore excluye `usuarios` y `reportes` | Corrige el hallazgo H2 (escalamiento a admin) | RF-43 | T-00 |
