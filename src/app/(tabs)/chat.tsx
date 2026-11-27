@@ -1,7 +1,12 @@
-// RF-20, RF-21, RF-22: chat en tiempo real por sala temática.
-// Responsable: Alexis. Siguiente paso: salas por región, reportar mensaje (RF-25), notificaciones (RF-24).
-import { useEffect, useState } from 'react';
+// RF-20, RF-21, RF-22, RF-24, RF-25: chat en tiempo real por sala (región + tema).
+// Mantener presionado un mensaje permite Responder (con cita) o Reportar.
+// Al enviar se avisa a los demás participantes de la sala (RF-24); tocar el aviso abre
+// /chat?region=…&tema=… (ver src/components/Notificaciones.tsx).
+// Responsable: Alexis.
+import { useCallback, useEffect, useState } from 'react';
 import {
+  Alert,
+  type AlertButton,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -12,18 +17,56 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { crear, escuchar, where } from '../../services/db';
+import { avisarParticipantes, marcarSalaVisible } from '../../services/notificaciones';
 import { useAuth } from '../../context/AuthContext';
-import type { Mensaje } from '../../types/modelos';
+import type { Localidad, Mensaje } from '../../types/modelos';
 import { colores, estilos } from '../../constants/tema';
+import { idSala, MAX_MENSAJE, REGIONES, TEMAS, tituloSala } from '../../lib/salas';
+import { citaDe } from '../../lib/respuestas';
+import { salaDeNotificacion } from '../../lib/notificaciones';
+import ReportarMensaje from '../../components/ReportarMensaje';
 
-const SALAS = ['General', 'Escuela', 'Ambiente laboral', 'Servicios básicos', 'Institucional'];
+/**
+ * RF-24: tocar una notificación abre /chat?region=…&tema=…&t=… (t cambia en cada toque).
+ * La sala se ajusta durante el render cuando cambian los parámetros, no en un efecto
+ * (https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes).
+ */
+function useSalaDeNotificacion(abrir: (region: Localidad, tema: string) => void) {
+  const params = useLocalSearchParams<{ region?: string; tema?: string; t?: string }>();
+  const clave = `${params.region}|${params.tema}|${params.t}`;
+  const [claveVista, setClaveVista] = useState<string | null>(null);
+  if (clave !== claveVista) {
+    setClaveVista(clave);
+    const destino = salaDeNotificacion(params);
+    if (destino) abrir(destino.region, destino.tema);
+  }
+}
 
 export default function Chat() {
   const { usuario } = useAuth();
-  const [sala, setSala] = useState(SALAS[0]);
+  const [region, setRegion] = useState<Localidad>(REGIONES[0]);
+  const [tema, setTema] = useState(TEMAS[0]);
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [texto, setTexto] = useState('');
+  const [respondiendo, setRespondiendo] = useState<Mensaje | null>(null);
+  const [reportando, setReportando] = useState<Mensaje | null>(null);
+  const sala = idSala(region, tema);
+
+  useSalaDeNotificacion((r, t) => {
+    setRegion(r);
+    setTema(t);
+    setRespondiendo(null);
+  });
+
+  // Mientras la sala está en pantalla no se avisa de sus mensajes
+  useFocusEffect(
+    useCallback(() => {
+      marcarSalaVisible(sala);
+      return () => marcarSalaVisible(null);
+    }, [sala]),
+  );
 
   // Se ordena en la app para no requerir un índice compuesto en Firestore
   useEffect(
@@ -31,28 +74,68 @@ export default function Chat() {
     [sala],
   );
 
+  // Al cambiar de sala se descarta la respuesta en curso: la cita pertenece a la sala anterior
+  function cambiarRegion(r: Localidad) {
+    setRegion(r);
+    setRespondiendo(null);
+  }
+
+  function cambiarTema(t: string) {
+    setTema(t);
+    setRespondiendo(null);
+  }
+
+  // RF-22 y RF-25: no se puede reportar un mensaje propio
+  function mostrarOpciones(m: Mensaje) {
+    const botones: AlertButton[] = [{ text: 'Responder', onPress: () => setRespondiendo(m) }];
+    if (m.autorId !== usuario?.uid) botones.push({ text: 'Reportar', onPress: () => setReportando(m) });
+    botones.push({ text: 'Cancelar', style: 'cancel' });
+    Alert.alert(m.autorNombre, m.texto, botones);
+  }
+
   async function enviar() {
     const limpio = texto.trim();
     if (!limpio || !usuario) return;
     setTexto('');
+    setRespondiendo(null);
+    const autorNombre = usuario.displayName ?? 'Docente';
     await crear('mensajes', {
       texto: limpio,
       sala,
+      region,
+      tema,
       autorId: usuario.uid,
-      autorNombre: usuario.displayName ?? 'Docente',
+      autorNombre,
       fecha: Date.now(),
+      // Firestore no acepta campos undefined: respuestaA solo se agrega si se está respondiendo
+      ...(respondiendo && { respuestaA: citaDe(respondiendo) }),
     });
+    // RF-24: no se espera; si falla el aviso, el mensaje ya quedó guardado
+    avisarParticipantes({ sala, region, tema, autorNombre, texto: limpio }, usuario.uid);
   }
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.salas}>
-        {SALAS.map((s) => (
-          <Pressable key={s} onPress={() => setSala(s)} style={[estilos.chip, sala === s && estilos.chipActivo]}>
-            <Text style={sala === s ? estilos.textoChipActivo : estilos.textoChip}>{s}</Text>
-          </Pressable>
-        ))}
-      </ScrollView>
+      <View style={styles.salas}>
+        <Text style={styles.etiqueta}>Región</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.fila}>
+          {REGIONES.map((r) => (
+            <Pressable key={r} onPress={() => cambiarRegion(r)} style={[estilos.chip, region === r && estilos.chipActivo]}>
+              <Text style={region === r ? estilos.textoChipActivo : estilos.textoChip}>{r}</Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+        <Text style={styles.etiqueta}>Tema</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.fila}>
+          {TEMAS.map((t) => (
+            <Pressable key={t} onPress={() => cambiarTema(t)} style={[estilos.chip, tema === t && estilos.chipActivo]}>
+              <Text style={tema === t ? estilos.textoChipActivo : estilos.textoChip}>{t}</Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+        <Text style={[estilos.subtitulo, styles.tituloSala]}>{tituloSala(region, tema)}</Text>
+        <Text style={styles.ayuda}>Mantén presionado un mensaje para responder o reportar.</Text>
+      </View>
 
       <FlatList
         inverted
@@ -62,18 +145,45 @@ export default function Chat() {
         renderItem={({ item }) => {
           const propio = item.autorId === usuario?.uid;
           return (
-            <View style={[styles.burbuja, propio ? styles.propia : styles.ajena]}>
+            <Pressable
+              onLongPress={() => mostrarOpciones(item)}
+              accessibilityHint="Mantén presionado para responder o reportar"
+              style={[styles.burbuja, propio ? styles.propia : styles.ajena]}
+            >
               {!propio && <Text style={styles.autor}>{item.autorNombre}</Text>}
+              {item.respuestaA && (
+                <View style={[styles.cita, propio && styles.citaPropia]}>
+                  <Text style={[styles.autor, propio && styles.textoPropio]}>{item.respuestaA.autorNombre}</Text>
+                  <Text style={propio ? styles.textoPropio : styles.textoCita} numberOfLines={2}>
+                    {item.respuestaA.texto}
+                  </Text>
+                </View>
+              )}
               <Text style={propio ? { color: '#fff' } : undefined}>{item.texto}</Text>
-            </View>
+            </Pressable>
           );
         }}
       />
 
+      {respondiendo && (
+        <View style={styles.respondiendo}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.autor}>Respondiendo a {respondiendo.autorNombre}</Text>
+            <Text style={styles.textoCita} numberOfLines={1}>
+              {respondiendo.texto}
+            </Text>
+          </View>
+          <Pressable onPress={() => setRespondiendo(null)} hitSlop={12} accessibilityLabel="Cancelar respuesta">
+            <Text style={styles.cerrar}>✕</Text>
+          </Pressable>
+        </View>
+      )}
+
       <View style={styles.barra}>
         <TextInput
           style={[estilos.input, { flex: 1, marginBottom: 0 }]}
-          placeholder="Escribe tu duda o recomendación"
+          placeholder={respondiendo ? 'Escribe tu respuesta' : 'Escribe tu duda o recomendación'}
+          maxLength={MAX_MENSAJE}
           value={texto}
           onChangeText={setTexto}
         />
@@ -81,16 +191,37 @@ export default function Chat() {
           <Text style={estilos.textoBoton}>Enviar</Text>
         </Pressable>
       </View>
+
+      <ReportarMensaje mensaje={reportando} onCerrar={() => setReportando(null)} />
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  salas: { flexGrow: 0, padding: 12, borderBottomWidth: 1, borderColor: colores.borde },
+  salas: { padding: 12, borderBottomWidth: 1, borderColor: colores.borde },
+  fila: { flexGrow: 0, marginBottom: 8 },
+  etiqueta: { fontWeight: '600', color: colores.textoSuave, marginBottom: 4 },
+  tituloSala: { marginBottom: 0 },
+  ayuda: { color: colores.textoSuave, fontSize: 12, marginTop: 2 },
   burbuja: { maxWidth: '80%', padding: 10, borderRadius: 12, marginVertical: 4 },
   propia: { alignSelf: 'flex-end', backgroundColor: colores.primario },
   ajena: { alignSelf: 'flex-start', backgroundColor: '#EEEEEE' },
   autor: { fontWeight: '600', marginBottom: 2, color: colores.textoSuave },
+  cita: { borderLeftWidth: 3, borderLeftColor: colores.primario, paddingLeft: 8, marginBottom: 6 },
+  citaPropia: { borderLeftColor: '#FFFFFF' },
+  textoCita: { color: colores.textoSuave },
+  textoPropio: { color: '#FFFFFF', opacity: 0.85 },
+  respondiendo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderLeftWidth: 3,
+    borderColor: colores.borde,
+    borderLeftColor: colores.primario,
+  },
+  cerrar: { fontSize: 18, color: colores.textoSuave, paddingHorizontal: 4 },
   barra: { flexDirection: 'row', padding: 8, borderTopWidth: 1, borderColor: colores.borde, alignItems: 'center' },
   enviar: { marginTop: 0, marginLeft: 8 },
 });

@@ -8,6 +8,25 @@ export type Coordenada = {
 
 export type Localidad = 'Yuriria' | 'Uriangato' | 'Moroleón';
 
+// RF-01. Colección: "usuarios" (id = uid). Se crea en src/services/auth.ts.
+// Privada (RNF-05): solo la lee su dueño o un admin, porque incluye el correo.
+export type Usuario = {
+  id: string;
+  nombre: string;
+  correo: string;
+  rol: 'docente' | 'admin';
+  institucion: string;
+  creado: number;
+};
+
+// RF-24. Colección: "avisos" (id = uid). Separada de "usuarios" para no exponer el correo (T-28, S8):
+// quien envía un mensaje necesita leer las salas y el token de los demás participantes.
+export type RegistroAvisos = {
+  id: string;
+  salas?: string[]; // idSala donde ha escrito: recibe avisos de esas salas
+  pushToken?: string; // token de Expo (Plan A); no existe en Expo Go
+};
+
 // RF-11: tres categorías de puntos en el mapa. Colección: "puntos"
 export type CategoriaPunto = 'interes' | 'riesgo' | 'referencia';
 
@@ -33,14 +52,43 @@ export type Servicio = Coordenada & {
   autorId: string;
 };
 
+// RF-22: copia breve del mensaje al que se responde, ver src/lib/respuestas.ts
+export type Cita = {
+  id: string;
+  autorNombre: string;
+  texto: string;
+};
+
 // RF-20 a RF-22. Colección: "mensajes"
 export type Mensaje = {
   id: string;
   texto: string;
-  sala: string;
+  sala: string; // idSala(region, tema), ver src/lib/salas.ts (RF-21)
+  region: Localidad;
+  tema: string;
   autorId: string;
   autorNombre: string;
   fecha: number; // Date.now()
+  respuestaA?: Cita; // solo si el mensaje responde a otro (RF-22)
+};
+
+// RF-25 (SRS 6.1, ReporteContenido). Colección: "reportes"
+// Id del documento = idReporte(contenidoId, autorId): un reporte por persona por mensaje.
+export type EstadoReporte = 'pendiente' | 'resuelto';
+
+export type Reporte = {
+  id: string;
+  tipo: 'mensaje';
+  contenidoId: string; // id del mensaje reportado
+  sala: string;
+  textoReportado: string; // copia del mensaje por si su autor lo borra
+  autorMensajeId: string;
+  motivo: string; // uno de MOTIVOS, ver src/lib/reportes.ts
+  detalle: string;
+  autorId: string; // quien reporta
+  estado: EstadoReporte;
+  fecha: number;
+  resueltoPor?: string; // uid del administrador (RF-45)
 };
 
 // RF-30 a RF-34. Colección: "alertas"
@@ -75,10 +123,23 @@ export type Hospedaje = Coordenada & {
 export type Lugar = Coordenada & {
   id: string;
   nombre: string;
-  categoria: string;
+  categoria: string; // una de CATEGORIAS_LUGAR, ver src/lib/lugares.ts
   localidad: Localidad;
   descripcion: string;
   autorId: string;
+  autorNombre: string;
+  fecha: number; // Date.now()
+};
+
+// RF-28. Subcolección: "lugares/{lugarId}/valoraciones"
+// Id del documento = uid de quien valora: una valoración por persona por lugar.
+export type Valoracion = {
+  id: string; // = autorId
+  estrellas: number; // entero del 1 al 5
+  comentario: string; // opcional: puede ir vacío
+  autorId: string;
+  autorNombre: string;
+  fecha: number;
 };
 
 // RF-39 a RF-42. Colección: "paradas"

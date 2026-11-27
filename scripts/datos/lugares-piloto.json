@@ -1,0 +1,140 @@
+{
+  "descripcion": "Lugares destacados reales de la región piloto (T-29, RF-26). Los carga scripts/cargar-lugares.mjs con la cuenta docente 'Equipo DocenGo'.",
+  "fuente": "OpenStreetMap: Overpass API (Moroleón y Uriangato) y Nominatim (Yuriria), consultados el 26 de noviembre de 2026.",
+  "licencia": "Coordenadas © colaboradores de OpenStreetMap, disponibles bajo la licencia ODbL (https://www.openstreetmap.org/copyright). Descripciones escritas por el equipo DocenGo.",
+  "verificacion": "Antes de cargar, confirmar en persona o en Google Maps que cada lugar existe, que el pin cae en el lugar correcto y que la descripción es correcta; después cambiar 'verificado' a true.",
+  "lugares": [
+    {
+      "id": "piloto-yuriria-ex-convento",
+      "nombre": "Museo Ex Convento Agustino de San Pablo",
+      "categoria": "Cultura",
+      "localidad": "Yuriria",
+      "descripcion": "Ex convento agustino del siglo XVI en el centro de Yuriria, hoy museo. Buen lugar para conocer la historia de la región y para planear una visita escolar.",
+      "latitud": 20.2139347,
+      "longitud": -101.1314051,
+      "fuente": "OpenStreetMap relation/21200841 (Nominatim)",
+      "verificado": false
+    },
+    {
+      "id": "piloto-yuriria-jardin-principal",
+      "nombre": "Jardín Principal de Yuriria",
+      "categoria": "Parque o recreación",
+      "localidad": "Yuriria",
+      "descripcion": "Jardín del centro, frente al ex convento. Punto de reunión cómodo para ubicarse al llegar y caminar por la zona centro.",
+      "latitud": 20.2130073,
+      "longitud": -101.1310462,
+      "fuente": "OpenStreetMap way/477372992 (Nominatim)",
+      "verificado": false
+    },
+    {
+      "id": "piloto-yuriria-malecon",
+      "nombre": "Malecón de la Laguna de Yuriria",
+      "categoria": "Parque o recreación",
+      "localidad": "Yuriria",
+      "descripcion": "Malecón y embarcadero a la orilla de la laguna. Espacio abierto para caminar y descansar el fin de semana.",
+      "latitud": 20.2215437,
+      "longitud": -101.136749,
+      "fuente": "OpenStreetMap way/889438668 (Nominatim, nombre en OSM: 'Malecón del Lago Yururia')",
+      "verificado": false
+    },
+    {
+      "id": "piloto-yuriria-crater-la-joya",
+      "nombre": "Parque Ecológico Lago-Cráter La Joya",
+      "categoria": "Parque o recreación",
+      "localidad": "Yuriria",
+      "descripcion": "Área natural alrededor de un cráter al sur de Yuriria. Opción para caminar al aire libre; conviene ir acompañado y de día.",
+      "latitud": 20.1882571,
+      "longitud": -101.1221992,
+      "fuente": "OpenStreetMap way/1245280918 (Nominatim)",
+      "verificado": false
+    },
+    {
+      "id": "piloto-uriangato-mercado",
+      "nombre": "Mercado Municipal de Uriangato",
+      "categoria": "Compras",
+      "localidad": "Uriangato",
+      "descripcion": "Mercado cerca del centro para comprar alimentos y artículos del día a día. Útil para surtir la despensa al llegar.",
+      "latitud": 20.1427244,
+      "longitud": -101.1829257,
+      "fuente": "OpenStreetMap way/363985010 (Overpass)",
+      "verificado": false
+    },
+    {
+      "id": "piloto-uriangato-jardin-principal",
+      "nombre": "Jardín Principal de Uriangato",
+      "categoria": "Parque o recreación",
+      "localidad": "Uriangato",
+      "descripcion": "Jardín del centro histórico, junto al monumento a San Miguel Arcángel. Buen punto de referencia para ubicarse en la ciudad.",
+      "latitud": 20.1416342,
+      "longitud": -101.1788077,
+      "fuente": "OpenStreetMap way/553389850 (Overpass)",
+      "verificado": false
+    },
+    {
+      "id": "piloto-uriangato-cafe-el-jardin",
+      "nombre": "Café El Jardín",
+      "categoria": "Cafetería",
+      "localidad": "Uriangato",
+      "descripcion": "Cafetería frente al jardín principal. Lugar tranquilo para tomar un café o revisar pendientes después de clases.",
+      "latitud": 20.1412667,
+      "longitud": -101.1786924,
+      "fuente": "OpenStreetMap node/3684167523 (Overpass)",
+      "verificado": false
+    },
+    {
+      "id": "piloto-uriangato-casa-cultura",
+      "nombre": "Casa de la Cultura de Uriangato",
+      "categoria": "Cultura",
+      "localidad": "Uriangato",
+      "descripcion": "Espacio cultural de la ciudad. Vale la pena preguntar por talleres y eventos que puedan servir para actividades con alumnos.",
+      "latitud": 20.1493892,
+      "longitud": -101.1805864,
+      "fuente": "OpenStreetMap way/424215603 (Overpass, nombre en OSM: 'Casa de la Cultura')",
+      "verificado": false
+    },
+    {
+      "id": "piloto-moroleon-plaza-principal",
+      "nombre": "Plaza Principal de Moroleón",
+      "categoria": "Parque o recreación",
+      "localidad": "Moroleón",
+      "descripcion": "Plaza del centro con el monumento a Miguel Hidalgo. Punto de referencia para moverse por Moroleón y conocer el centro.",
+      "latitud": 20.1302134,
+      "longitud": -101.1908479,
+      "fuente": "OpenStreetMap way/37574285 (Overpass)",
+      "verificado": false
+    },
+    {
+      "id": "piloto-moroleon-casa-cultura",
+      "nombre": "Casa de la Cultura de Moroleón",
+      "categoria": "Cultura",
+      "localidad": "Moroleón",
+      "descripcion": "Casa de la cultura junto al Teatro Ignacio López Tarso. Buen lugar para buscar actividades culturales y presentaciones.",
+      "latitud": 20.1204403,
+      "longitud": -101.1879543,
+      "fuente": "OpenStreetMap way/732374016 (Overpass)",
+      "verificado": false
+    },
+    {
+      "id": "piloto-moroleon-mercado",
+      "nombre": "Mercado Municipal de Moroleón",
+      "categoria": "Compras",
+      "localidad": "Moroleón",
+      "descripcion": "Mercado sobre el Boulevard Ponciano Vega para comprar alimentos y artículos básicos.",
+      "latitud": 20.1237247,
+      "longitud": -101.1892493,
+      "fuente": "OpenStreetMap node/443438734 (Overpass; OSM tiene otro 'Mercado Municipal' en way/159593405)",
+      "verificado": false
+    },
+    {
+      "id": "piloto-moroleon-palapa-zavalita",
+      "nombre": "Palapa de Zavalita",
+      "categoria": "Comida",
+      "localidad": "Moroleón",
+      "descripcion": "Restaurante de mariscos al poniente del centro. Opción para comer en grupo fuera de la zona centro.",
+      "latitud": 20.1307319,
+      "longitud": -101.2067622,
+      "fuente": "OpenStreetMap way/954421354 (Overpass)",
+      "verificado": false
+    }
+  ]
+}
