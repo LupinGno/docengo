@@ -1,5 +1,4 @@
-// Funciones genéricas para leer y escribir en Firestore.
-// Úsalas en todos los módulos para no repetir código.
+// Funciones genéricas para leer y escribir en Firestore
 import {
   addDoc,
   collection,
@@ -16,11 +15,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 
-/**
- * Escucha una colección en tiempo real. Devuelve la función para dejar de escuchar,
- * así que se puede usar directo en useEffect:
- *   useEffect(() => escuchar<Punto>('puntos', setPuntos), []);
- */
+/** Escucha una colección en tiempo real. */
 export function escuchar<T>(
   nombre: string,
   alCambiar: (datos: T[]) => void,
@@ -34,9 +29,7 @@ export function escuchar<T>(
   );
 }
 
-/**
- * Escucha un solo documento en tiempo real. Llama a alCambiar(null) si no existe o si se borró.
- *   useEffect(() => escucharDoc<Lugar>('lugares', id, setLugar), [id]);
+/**Escucha un solo documento en tiempo real.
  */
 export function escucharDoc<T>(nombre: string, id: string, alCambiar: (dato: T | null) => void) {
   return onSnapshot(
@@ -46,7 +39,10 @@ export function escucharDoc<T>(nombre: string, id: string, alCambiar: (dato: T |
   );
 }
 
-/** Lee una sola vez los documentos que cumplen las restricciones (sin escuchar cambios). */
+/** Alias de escucharDoc**/
+export const escucharUno = escucharDoc;
+
+/** Lee una sola vez los documentos que cumplen las restricciones . */
 export async function consultar<T>(nombre: string, ...restricciones: QueryConstraint[]): Promise<T[]> {
   const snap = await getDocs(query(collection(db, nombre), ...restricciones));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as unknown as T);
@@ -64,8 +60,7 @@ export function guardar(nombre: string, id: string, datos: object) {
 }
 
 /**
- * Crea un documento con un id elegido por la app (ej. un reporte por persona por mensaje).
- * Si el documento ya existe, Firestore lo trata como actualización y aplica la regla de update.
+ * Crea un documento con un id elegido por la app (para que coincida con el uid de Firebase Auth).
  */
 export function crearConId(nombre: string, id: string, datos: object) {
   return setDoc(doc(db, nombre, id), datos as DocumentData);
@@ -77,9 +72,7 @@ export async function existe(nombre: string, id: string): Promise<boolean> {
 }
 
 /**
- * Combina campos en un documento y lo crea si no existe (setDoc con merge).
- * A diferencia de `actualizar`, no falla con documentos nuevos; a diferencia de `guardar`,
- * no borra los campos que no se mandan.
+ * Combina campos en un documento y lo crea si no existe n.
  */
 export function actualizarOCrear(nombre: string, id: string, cambios: object) {
   return setDoc(doc(db, nombre, id), cambios as DocumentData, { merge: true });

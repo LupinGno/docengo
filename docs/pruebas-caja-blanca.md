@@ -619,3 +619,36 @@ y `salas`.
   sala llega a tantos participantes, así que no se envía en partes.
 - **Aviso esperado en la consola.** En Expo Go, `expo-notifications` escribe una advertencia
   de que el push remoto no está disponible. Es normal y confirma que se usa el Plan B.
+
+---
+
+## 16. `puedeEditar` (src/lib/permisos.ts), RF-13, RF-29 y RF-45
+
+Decide si se muestran los botones **Editar** y **Eliminar**. Debe coincidir con la regla de Firestore `esAutor() || esAdmin()`: si la app y las reglas no coinciden, el usuario ve un botón que luego falla con `permission-denied`.
+
+```ts
+export function puedeEditar(autorId, actor) {
+  if (!actor) return false;                                  // D1
+  return actor.uid === autorId || actor.rol === 'admin';     // D2 (||)
+}
+```
+
+**V(G) = 1 + `if` + `||` = 3.**
+
+| Camino | Recorrido | Entrada | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|---|
+| C1 | D1 sí | sin sesión (`null`) | `false` | CB-PRM-1 | Pasa |
+| C2 | D1 no, `uid === autorId` | el autor, rol docente | `true` (corto circuito del `\|\|`) | CB-PRM-2 | Pasa |
+| C3 | D1 no, no es autor, es admin | otro uid, rol admin | `true` | CB-PRM-3 | Pasa |
+
+Caso complementario (cobertura de condiciones): CB-PRM-4, ni autor ni admin → `false`.
+
+---
+
+## 24. Hallazgos de las tareas de José (T-00 a T-17)
+
+Se numeran desde H11 para no repetir los de `revision-seguridad.md` (H1 a H10).
+
+| ID | Ubicación | Descripción | Decisión |
+|---|---|---|---|
+| H11 | firestore.rules, regla general `match /{coleccion}/{id}` | La regla general también aplicaba a `usuarios`: un usuario podía crear su documento con `{ rol: "admin", autorId: <su uid> }` y quedar como administrador. Encontrado al revisar las reglas contra RF-43. | Corregido en T-00: la regla general excluye `usuarios` y `reportes`. Verificado en el Área de pruebas de reglas (create con rol admin → Denegado). |
