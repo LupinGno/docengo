@@ -805,6 +805,364 @@ Casos complementarios: CB-FRM-4 (al elegir Riesgo la descripción se marca oblig
 
 ---
 
+## 19. Filtros y preferencias del mapa (RF-04, RF-14)
+
+### 19.1 `preferenciasConDefecto` (src/lib/mapa.ts)
+
+```ts
+const p = guardadas ?? {};                                   // D1
+return {
+  categorias: p.categorias ?? DEFECTO.categorias,            // D2
+  radioKm:    p.radioKm    ?? DEFECTO.radioKm,               // D3
+  zoomDelta:  p.zoomDelta  ?? DEFECTO.zoomDelta,             // D4
+};
+```
+
+**V(G) = 1 + 4 `??` = 5.**
+
+| Caso | Entrada | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|
+| Sin preferencias (lado izquierdo nulo de los 4 `??`) | `undefined` | Los 3 valores por defecto | CB-MAP-1 | Pasa |
+| Parcial | `{ radioKm: 5 }` | radio 5, lo demás por defecto | CB-MAP-2 | Pasa |
+| Radio "Todos" | `{ radioKm: 0 }` | radio **0** (no se cambia) | CB-MAP-3 | Pasa |
+| Completas (lado derecho de los 4 `??`) | las 3 guardadas | iguales | CB-MAP-4 | Pasa |
+
+**Hallazgo de diseño:** si "Todos" se guardara como `null`, el operador `??` lo reemplazaría por el valor por defecto y el docente perdería su elección. Por eso "Todos" es `0` (CB-MAP-3 lo protege).
+
+### 19.2 `puntosVisibles` (src/lib/mapa.ts)
+
+```ts
+puntos.filter((p) => {
+  if (!f.categorias.includes(p.categoria)) return false;     // D1
+  if (f.radioKm === 0 || !f.ubicacion) return true;          // D2 || D3
+  return distanciaKm(f.ubicacion, p) <= f.radioKm;           // valor límite <=
+});
+```
+
+```mermaid
+flowchart TD
+  I([punto]) --> D1{D1 categoría apagada?}
+  D1 -- sí --> NO[oculto]
+  D1 -- no --> D2{D2 radio = 0?}
+  D2 -- sí --> SI[visible]
+  D2 -- no --> D3{D3 sin ubicación?}
+  D3 -- sí --> SI
+  D3 -- no --> R{distancia <= radio?}
+  R -- sí --> SI
+  R -- no --> NO
+```
+
+**V(G) de la función interna = 1 + 2 `if` + 1 `||` = 4.**
+
+| Camino | Recorrido | Entrada | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|---|
+| C1 | D1 sí | riesgo con categorías `['interes']` | oculto | CB-MAP-5 | Pasa |
+| C2 | D1 no, D2 sí | radio 0 | todos visibles | CB-MAP-6 | Pasa |
+| C3 | D2 no, D3 sí | radio 5, sin ubicación | todos visibles (se ignora el radio) | CB-MAP-7 | Pasa |
+| C4 | D3 no, dentro | radio 5, punto a ~3 km | visible | CB-MAP-8 | Pasa |
+
+Casos complementarios: CB-MAP-9 (punto a ~11 km, fuera) y CB-MAP-10 (punto exactamente a `radioKm`, valor límite: visible).
+
+### 19.3 Funciones auxiliares (src/lib/mapa.ts)
+
+| Función | V(G) | Casos | Prueba | Estado |
+|---|---|---|---|---|
+| `alternar(lista, valor)` | 2 (`? :`) | agrega si no está; quita si está | CB-MAP-11 | Pasa |
+| `zoomCambio(anterior, nuevo)` | 1 | 50 % → sí; 10 % exacto → no (límite); igual → no | CB-MAP-12 | Pasa |
+| `etiquetaRadio(km)` | 2 (`? :`) | 0 → "Todos"; 5 → "5 km" | CB-MAP-13 | Pasa |
+| `avisoMapa(permitida, radioKm, ubicacion)` | 4 (2 `if` + `&&`) | radio sin ubicación; sin permiso; con permiso | CB-MAP-14 a 16 | Pasa |
+
+`zoomCambio` evita escribir en Firestore cada vez que el docente mueve el mapa: solo se guarda el zoom si cambió más de 10 %.
+
+### 19.4 Componente `FiltrosMapa` y hook `usePreferenciasMapa`
+
+| Pieza | V(G) | Caso | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|---|
+| FiltrosMapa | 1 (Chip: 3) | tocar categoría encendida | la quita | CB-FMA-1 | Pasa |
+| | | tocar categoría apagada | la agrega | CB-FMA-2 | Pasa |
+| | | tocar "5 km" | `onRadio(5)` | CB-FMA-3 | Pasa |
+| | | radio actual 10 | "10 km" seleccionado, "Todos" no | CB-FMA-4 | Pasa |
+| usePreferenciasMapa | 2 (`cambiar`: 2) | perfil sin preferencias | valores por defecto | CB-PRF-1 | Pasa |
+| | | perfil con preferencias | se usan | CB-PRF-2 | Pasa |
+| | | `cambiar({ radioKm: 10 })` con sesión | cambia al instante y guarda las 3 preferencias en `usuarios/u1` | CB-PRF-3 | Pasa |
+| | | `cambiar` sin sesión | cambia en pantalla, **no** guarda | CB-PRF-4 | Pasa |
+
+La pantalla `Mapa` quedó con V(G) = 1: toda la lógica está en `src/lib/mapa.ts` y en el hook.
+
+---
+
+## 20. Servicios y ficha de servicio (RF-16 a RF-19)
+
+### 20.1 `estaAbierto` (src/lib/servicios.ts)
+
+```ts
+if (!horario) return null;                                  // D1
+const m = HORARIO.exec(horario.trim());
+if (!m) return null;                                        // D2
+// abre, cierra y actual en minutos desde las 0:00
+if (cierra > abre) return actual >= abre && actual < cierra; // D3, D4 (&&)
+return actual >= abre || actual < cierra;                  // D5 (||): cruza la medianoche
+```
+
+```mermaid
+flowchart TD
+  I([Inicio]) --> D1{D1 sin horario?}
+  D1 -- sí --> N[null]
+  D1 -- no --> D2{D2 formato inválido?}
+  D2 -- sí --> N
+  D2 -- no --> D3{D3 cierra después de abrir?}
+  D3 -- sí --> D4{D4 actual >= abre && actual < cierra}
+  D3 -- no --> D5{D5 actual >= abre || actual < cierra}
+  D4 --> R[true / false]
+  D5 --> R
+```
+
+**V(G) = 1 + 3 `if` + `&&` + `||` = 6.**
+
+| Camino | Recorrido | Entrada | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|---|
+| C1 | D1 sí | `undefined` | `null` | CB-SRV-1 | Pasa |
+| C2 | D2 sí | `'todo el día'` | `null` | CB-SRV-2 | Pasa |
+| C3 | D3 sí, dentro | `'9:00 a 21:00'` a las 10:00 | `true` | CB-SRV-4 | Pasa |
+| C4 | D3 sí, `&&` corta en el primer lado | a las 8:59 | `false` | CB-SRV-5 | Pasa |
+| C5 | D3 no, `\|\|` primer lado | `'22:00 a 02:00'` a las 23:30 | `true` | CB-SRV-8 | Pasa |
+| C6 | D3 no, `\|\|` segundo lado | a la 01:00 | `true` | CB-SRV-9 | Pasa |
+
+Valores límite y casos extra: CB-SRV-3 (horas inválidas `25:00`), CB-SRV-6 (9:00 justo al abrir → abierto), CB-SRV-7 (21:00 justo al cerrar → cerrado: el cierre es exclusivo), CB-SRV-10 (cruza medianoche, a mediodía → cerrado), CB-SRV-11 (`0:00 a 0:00` = 24 horas).
+
+### 20.2 `textoEstado`, `sinCoordenadas` y `listaServicios` (src/lib/servicios.ts)
+
+| Función | V(G) | Casos | Pruebas | Estado |
+|---|---|---|---|---|
+| `textoEstado(abierto)` | 3 | `null` → "Horario no disponible"; `true` → "Abierto ahora"; `false` → "Cerrado" | CB-SRV-12 | Pasa |
+| `sinCoordenadas(lista)` | 2 (filtro con `\|\|`) | todo válido → `[]`; latitud faltante; longitud escrita como texto | CB-GEO2-1 a 3 | Pasa |
+| `listaServicios(servicios, tipo, ubicacion)` | 3 (`? :` + `if`) | "Todos" sin ubicación; un tipo sin ubicación; con ubicación quita lo de más de 10 km y ordena; tipo + ubicación | CB-LSV-1 a 4 | Pasa |
+
+`sinCoordenadas` sirve para el criterio de RF-16 ("el 100 % de los establecimientos aparecen geolocalizados"): si devuelve algo, hay un servicio mal capturado. CB-GEO2-3 cubre el error más común: escribir la longitud como texto en la consola de Firebase.
+
+### 20.3 Pantallas (src/app/(tabs)/servicios.tsx y src/app/servicio/[id].tsx)
+
+Pruebas de componente con Firestore, ubicación y mapa simulados.
+
+| Pantalla | V(G) | Caso | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|---|
+| Lista | 2 (Tarjeta: 3) | tocar un servicio | abre `/servicio/s1` | CB-LST-1 | Pasa |
+| | | chip "Farmacias" | solo farmacias (RF-17) | CB-LST-2 | Pasa |
+| | | sin ubicación | aviso "se muestran todos sin ordenar" | CB-LST-3 | Pasa |
+| | | con ubicación | muestra la distancia | CB-LST-4 | Pasa |
+| | | servicio sin dirección | "Sin dirección" | CB-LST-5 | Pasa |
+| Ficha | 4 (Detalle: 4, Campo: 2) | todos los datos | nombre, tipo, dirección, horario, "Abierto ahora", teléfono, distancia; **Llamar** abre `tel:4451234567` | CB-FSV-1 | Pasa |
+| | | sin dirección, horario ni teléfono | 3 × "No disponible", "Horario no disponible", sin Llamar ni distancia | CB-FSV-2 | Pasa |
+| | | ya no existe | "Este servicio ya no está disponible." | CB-FSV-3 | Pasa |
+| | | cargando | sin datos | CB-FSV-4 | Pasa |
+| | | reloj fijo a las 12:00, horario 9:00 a 10:00 | "Cerrado" | CB-FSV-5 | Pasa |
+
+**Nota de diseño de pruebas:** CB-FSV-5 fija la hora con `jest.useFakeTimers({ now })`. Una primera versión aceptaba "Cerrado" o "Abierto ahora" según la hora en que corriera; se cambió porque una prueba que acepta cualquier resultado no prueba nada.
+
+---
+
+## 21. Alertas y zonas de riesgo en el mapa (RF-31, RF-32)
+
+### 21.1 `zonasDeRiesgo` (src/lib/zonas.ts)
+
+Une en una sola lista los **puntos de categoría riesgo** y las **alertas**. Cada zona se dibuja con un círculo de 300 m del color de su nivel y un globo con su descripción.
+
+```ts
+const dePuntos = puntos
+  .filter((p) => p.categoria === 'riesgo')                          // filtro
+  .map((p) => ({ ..., descripcion: p.descripcion || DESCRIPCION_RIESGO, nivel: 'medio' }));  // D1 (||)
+const deAlertas = alertas
+  .map((a) => ({ ..., descripcion: a.descripcion || DESCRIPCION_RIESGO, nivel: a.nivel }));  // D2 (||)
+return [...dePuntos, ...deAlertas];
+```
+
+**V(G):** la función principal 1; cada función interna con `||` 2 (ESLint: 1, 2 y 2). Lo importante aquí no es la complejidad sino demostrar el criterio **"100 % de las zonas de riesgo con su alerta"** de RF-31.
+
+| Caso | Entrada | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|
+| Mezcla | 1 punto de riesgo + 1 de interés + 2 alertas | 3 zonas (el de interés no entra) | CB-ZON-1 | Pasa |
+| D1 lado derecho | punto de riesgo sin descripción | descripción genérica, nivel medio | CB-ZON-2 | Pasa |
+| **Criterio RF-31** | 10 puntos de riesgo (la mitad sin descripción) + 10 alertas | **20 zonas, todas con descripción** | CB-ZON-3 | Pasa |
+| Vacío | sin datos | `[]` | CB-ZON-4 | Pasa |
+| RF-32 | alerta de nivel alto, tipo crimen organizado | conserva `nivel: 'alto'`, título "Crimen organizado" | CB-ZON-5 | Pasa |
+| D2 lado derecho | alerta con descripción vacía | descripción genérica | CB-ZON-6 | Pasa |
+
+Funciones auxiliares: `puntosSinRiesgo` (CB-ZON-7: los puntos de riesgo ya no se dibujan como alfiler, para no duplicarlos) y `textoZona` (CB-ZON-8: "Riesgo alto · Calle sin luz").
+
+El filtro del mapa de T-05 (`puntosVisibles`) se aplica igual a las zonas: el chip **Riesgo** y el radio de distancia también las ocultan.
+
+### 21.2 Componentes del mapa (src/components/mapa/)
+
+El mapa real necesita el celular; en las pruebas se simulan `Circle` y `Marker` y se revisan las props con que se dibujan.
+
+| Pieza | V(G) | Caso | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|---|
+| CapaRiesgo | 1 | 2 zonas (alto y bajo) | 2 círculos de 300 m y 2 marcadores con el color y texto de su nivel | CB-CRI-1 | Pasa |
+| | | tocar el globo | llama `onAbrir` con esa zona | CB-CRI-2 | Pasa |
+| | | sin zonas | no dibuja nada | CB-CRI-3 | Pasa |
+| Leyenda | 1 | — | Alto, Medio, Bajo | CB-LEY-1 | Pasa |
+| `alMantenerPresionado` | 1 | mantener presionado | 3 opciones: Agregar punto, Reportar alerta aquí, Cancelar | CB-ACC-1 | Pasa |
+| | | "Agregar punto" | `/punto/nuevo` con `lat` y `lon` | CB-ACC-2 | Pasa |
+| | | "Reportar alerta aquí" | `/alerta/nueva` con `lat` y `lon` | CB-ACC-3 | Pasa |
+| `abrirZona` | 2 (`if`) | zona de un punto | `/punto/p1` | CB-ACC-4 | Pasa |
+| | | zona de una alerta | `/alertas` | CB-ACC-5 | Pasa |
+
+La pantalla `Mapa` sigue con V(G) = 2.
+
+---
+
+## 22. Paradas y horarios de transporte (RF-39, RF-41)
+
+### 22.1 `proximaSalida` (src/lib/transporte.ts)
+
+```ts
+const actual = ahora.getHours() * 60 + ahora.getMinutes();
+let mejor = null;
+for (const h of horarios) {                                     // D1 ciclo
+  const m = aMinutos(h);
+  if (m >= actual && (mejor === null || m < mejor)) mejor = m;  // D2 if, D3 &&, D4 ||
+}
+return mejor === null ? null : aHora(mejor);                    // D5 ? :
+```
+
+```mermaid
+flowchart TD
+  I([Inicio]) --> D1{D1 ¿quedan horarios?}
+  D1 -- no --> D5{D5 mejor = null?}
+  D1 -- sí --> D2{D2 m >= actual?}
+  D2 -- no --> D1
+  D2 -- sí --> D4{D4 mejor = null o m < mejor?}
+  D4 -- sí --> G[mejor = m] --> D1
+  D4 -- no --> D1
+  D5 -- sí --> N[null]
+  D5 -- no --> H[aHora mejor]
+```
+
+**V(G) = 1 + `for` + `if` + `&&` + `||` + `? :` = 6.**
+
+| Camino | Recorrido | Entrada | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|---|
+| C1 | D1 no (ciclo vacío), D5 sí | `[]` a las 10:00 | `null` | CB-TRA-1 | Pasa |
+| C2 | D2 sí, `mejor === null` | `['07:00','09:00']` a las 6:00 | `'07:00'` | CB-TRA-2 | Pasa |
+| C3 | D2 sí en el borde (`>=`) | a las 7:00 | `'07:00'` | CB-TRA-3 | Pasa |
+| C4 | D2 no en todos, D5 sí | a las 9:01 | `null` | CB-TRA-4 | Pasa |
+| C5 | D4 por `m < mejor` (desordenados) | `['09:00','07:30','08:00']` a las 7:10 | `'07:30'` | CB-TRA-5 | Pasa |
+
+### 22.2 Funciones de hora y texto (src/lib/transporte.ts)
+
+| Función | V(G) | Casos | Prueba | Estado |
+|---|---|---|---|---|
+| `horaLlegada(paso, duracionMin)` | 1 | 07:00 + 45 → 07:45; 23:50 + 20 → 00:10 (cruza medianoche) | CB-TRA-6, 7 | Pasa |
+| `aMinutos` / `aHora` | 1 | '07:05' ↔ 425 | CB-TRA-8 | Pasa |
+| `primeraSalida(horarios)` | 2 | vacía → `null`; desordenados → la menor | CB-TRA-9 | Pasa |
+| `textoProximaSalida(horarios, ahora, duracion)` | 4 (2 `if` + `? :`) | sin horarios; ya no hay hoy → primera de mañana; con duración → "· llega"; sin duración | CB-TRA-10 a 13 | Pasa |
+| `comoCapa(paradas)` | 1 | agrega `categoria: 'transporte'` para usar el filtro del mapa | CB-TRA-14 | Pasa |
+
+### 22.3 Pantallas
+
+| Pieza | V(G) | Caso | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|---|
+| Ficha de parada | 4 (Detalle 3, Tabla 3) | datos completos, reloj a las 6:30 | rutas, destino, "Próxima salida 07:00 · llega 07:20", tabla ordenada 07:00→07:20, 09:00→09:20 | CB-FPA-1 | Pasa |
+| | | sin rutas, destino ni duración | "Sin rutas registradas", "No registrado", sin columna "Llega" | CB-FPA-2 | Pasa |
+| | | sin horarios | "Sin horarios registrados", sin tabla | CB-FPA-3 | Pasa |
+| | | ya no existe | "Esta parada ya no está disponible." | CB-FPA-4 | Pasa |
+| | | cargando | sin datos | CB-FPA-5 | Pasa |
+| CapaParadas | 1 | una parada a las 8:00 | marcador en su coordenada con "Próxima salida 09:00 · llega 09:20"; tocar el globo abre la ficha | CB-CPA-1 | Pasa |
+
+El mapa agrega el chip **Transporte**: muestra u oculta las paradas y respeta el radio de distancia de T-05.
+
+---
+
+## 23. Medio alternativo y registro comunitario de paradas (RF-40, RF-42)
+
+### 23.1 Cobertura de transporte (src/lib/transporte.ts)
+
+```ts
+export function zonaElegida(eleccion, ubicacion) {
+  if (eleccion !== 'ubicacion') return { tipo: 'localidad', localidad: eleccion };   // D1
+  if (!ubicacion) return null;                                                       // D2
+  return { tipo: 'ubicacion', coord: ubicacion, radioKm: 1 };
+}
+export function paradasDeZona(paradas, zona) {
+  if (zona.tipo === 'localidad') return paradas.filter(...localidad);                // D3
+  return filtrarPorDistancia(paradas, zona.coord, zona.radioKm);
+}
+necesitaMedioAlternativo = (lista) => lista.length === 0;                            // RF-40
+```
+
+| Función | V(G) | Caso | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|---|
+| `zonaElegida` | 3 | una localidad (D1 sí) | zona de localidad | CB-ZEL-1 | Pasa |
+| | | "Mi ubicación" sin ubicación (D2 sí) | `null` | CB-ZEL-2 | Pasa |
+| | | "Mi ubicación" con ubicación | radio de 1 km | CB-ZEL-3 | Pasa |
+| `paradasDeZona` + `necesitaMedioAlternativo` | 2 y 1 | localidad con 2 paradas | 2 paradas, **sin** alerta | CB-COB-1 | Pasa |
+| | | localidad sin paradas | `[]`, **con** alerta | CB-COB-2 | Pasa |
+| | | ubicación a ~0.9 km de una parada | hay cobertura | CB-COB-3 | Pasa |
+| | | ubicación a ~3 km de la más cercana | sin cobertura, alerta | CB-COB-4 | Pasa |
+
+### 23.2 Horarios escritos por la comunidad (src/lib/transporte.ts)
+
+**`parsearHorarios`** — `for` + `if (!t) continue` + `if (m) ... else` → **V(G) = 4.**
+
+| Camino | Entrada | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|
+| ciclo con un solo elemento vacío | `''` | sin horarios ni inválidos | CB-HOR-1 | Pasa |
+| `if (m)` verdadero, normaliza | `'07:00, 7:30'` | `['07:00','07:30']` | CB-HOR-2 | Pasa |
+| `if (m)` falso | `'25:00, 07:00, 7.30'` | inválidos `['25:00','7.30']` | CB-HOR-3 | Pasa |
+| duplicados | `'08:00,07:00,08:00'` | `['07:00','08:00']` ordenados | CB-HOR-4 | Pasa |
+| `if (!t)` verdadero | `' , 07:00 , '` | `['07:00']` | CB-HOR-5 | Pasa |
+
+**`leerDuracion`** — `if (!texto.trim())` + `if (!Number.isInteger(n) || n < 1 || n > 300)` → **V(G) = 5.**
+
+| Caso | Entrada | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|
+| vacía | `'  '` | no se registra (`null`, sin error) | CB-DUR-1 | Pasa |
+| válida | `'25'` | 25 | CB-DUR-2 | Pasa |
+| valores límite | `'1'`, `'300'` válidos; `'0'`, `'301'` error | | CB-DUR-3 | Pasa |
+| no entera | `'2.5'`, `'veinte'` | error | CB-DUR-4 | Pasa |
+
+**`validarHorarios`** (V(G) = 3) y **`validarParada`** (V(G) = 4):
+
+| Caso | Resultado esperado | Prueba | Estado |
+|---|---|---|---|
+| un horario inválido | "Revisa estos horarios: 25:00. Usa el formato 07:30." | CB-VHO-1 | Pasa |
+| sin horarios | "Escribe al menos un horario." | CB-VHO-2 | Pasa |
+| duración 0 | error de 1 a 300 | CB-VHO-3 | Pasa |
+| todo válido | `null` | CB-VHO-4 | Pasa |
+| parada sin nombre / sin localidad / fuera de región | su error | CB-VPA-1 a 3 | Pasa |
+| parada sin horarios | delega en `validarHorarios` | CB-VPA-4 | Pasa |
+| parada válida | `null` | CB-VPA-5 | Pasa |
+
+**`armarParada`** y **`cambiosDeHorarios`** (V(G) = 2 cada una: `valor !== null ? ... : {}`): nunca mandan campos `undefined` a Firestore (CB-ARM-1 a 3). `textoALista` y `fechaCorta`: CB-ARM-4.
+
+### 23.3 Pantallas
+
+| Pantalla | V(G) | Caso | Resultado esperado | Prueba | Estado |
+|---|---|---|---|---|---|
+| Transporte | 5 | localidad sin paradas | **alerta de medio alternativo** (RF-40) | CB-PTR-1 | Pasa |
+| | | Moroleón con paradas | lista sin alerta; tocar abre la ficha | CB-PTR-2 | Pasa |
+| | | "Mi ubicación" sin permiso | pide activar la ubicación, sin alerta | CB-PTR-3 | Pasa |
+| | | "Mi ubicación" junto a una parada | la muestra | CB-PTR-4 | Pasa |
+| | | "+ Registrar parada" | abre `/parada/nueva` | CB-PTR-5 | Pasa |
+| Nueva parada | 3 (Formulario 4, guardar 5) | sin coordenadas | explica cómo marcar la ubicación | CB-NPA-1 | Pasa |
+| | | coordenadas del mapa, datos válidos | `crear('paradas', ...)` y regresa | CB-NPA-2 | Pasa |
+| | | ubicación del docente, sin nombre | error, no guarda | CB-NPA-3 | Pasa |
+| | | Firestore falla | mensaje comprensible, se puede reintentar | CB-NPA-4 | Pasa |
+| | | sin sesión (defensivo) | no intenta guardar | CB-NPA-5 | Pasa |
+| Actualizar horarios | 4 (Formulario 5, guardar 6) | precarga | horarios y duración actuales | CB-AHO-1 | Pasa |
+| | | agregar 10:30 | guarda **solo** horarios, duración, quién y cuándo | CB-AHO-2 | Pasa |
+| | | escribir 25:00 | dice cuál está mal, no guarda | CB-AHO-3 | Pasa |
+| | | sin duración + Firestore falla | campo vacío; mensaje | CB-AHO-4 | Pasa |
+| | | ya no existe | mensaje | CB-AHO-5 | Pasa |
+| | | cuenta sin nombre | se guarda como "Docente" | CB-AHO-6 | Pasa |
+| Ficha de parada (cambios de T-17) | 5 | actualizada por Ana | "Actualizado por Ana el 27/11"; botón lleva a actualizar | CB-FPA-6 | Pasa |
+| | | sin nombre / nunca actualizada | "un docente" / sin la línea | CB-FPA-7 | Pasa |
+| Menú del mapa | 1 | "Registrar parada aquí" | `/parada/nueva` con `lat` y `lon` | CB-ACC-6 | Pasa |
+
+**Nota de revisión:** la primera versión de "Nueva parada" tenía `if (!coordenada || !usuario) return;` dentro de `guardar()`. El lado `!coordenada` era inalcanzable porque sin coordenada no se mostraba el formulario. En lugar de documentarlo como camino imposible, se separó la pantalla en `NuevaParada` (decide si hay coordenada) y `Formulario` (recibe una coordenada segura). Queda solo `!usuario` como protección, cubierto por CB-NPA-5.
+
+---
+
 ## 24. Hallazgos de las tareas de José (T-00 a T-17)
 
 Se numeran desde H11 para no repetir los de `revision-seguridad.md` (H1 a H10).
@@ -814,3 +1172,4 @@ Se numeran desde H11 para no repetir los de `revision-seguridad.md` (H1 a H10).
 | H11 | firestore.rules, regla general `match /{coleccion}/{id}` | La regla general también aplicaba a `usuarios`: un usuario podía crear su documento con `{ rol: "admin", autorId: <su uid> }` y quedar como administrador. Encontrado al revisar las reglas contra RF-43. | Corregido en T-00: la regla general ya no se aplica a `usuarios` (se agregó a `tieneBloquePropio`). Se comprueba en el Área de pruebas de reglas con el caso 21 de `revision-seguridad.md` (crear el perfil con rol admin debe salir Denegado). |
 | H12 | FormularioPunto.tsx | La regla `complexity` de ESLint rechazó el componente con V(G) = 13 (cuatro `??` en los `useState` y los chips de categoría dentro del mismo componente). | Refactorizado en T-02: valores iniciales en `formularioInicial` (src/lib, con pruebas) y chips en `SelectorCategoria`. V(G) bajó a 5. |
 | H13 | punto/editar/[id].tsx | Al programar la edición se pasaba el punto completo como `coordenada`; al guardar, sus datos viejos (nombre, categoría) se esparcían después de los nuevos y los pisaban. Encontrado al revisar el código antes de probar. | Corregido en T-02: la pantalla pasa solo latitud y longitud y el formulario solo toma esas dos. Prueba de regresión CB-FRM-6. |
+| H14 | components/mapa/FiltrosMapa.tsx | FiltrosMapa importaba el color de transporte desde CapaParadas, que a su vez importa el módulo nativo del mapa. En Jest no existe ese módulo y la suite de FiltrosMapa dejaba de correr ("Test suite failed to run"), aunque el resumen seguía diciendo que todas las pruebas pasaban. | Corregido en T-14: la constante se movió a `src/lib/transporte.ts`, que no depende del mapa. Desde entonces se revisa también la línea "Test Suites:" del reporte, no solo "Tests:". |
