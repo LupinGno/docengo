@@ -9,7 +9,7 @@
 export const FLAGS = {
   lugares: true, // T-13: RF-26 a RF-29 terminados
   hospedaje: __DEV__,
-  transporte: __DEV__,
+  transporte: true,
   perfil: __DEV__,
 };
 

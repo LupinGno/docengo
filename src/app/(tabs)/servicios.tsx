@@ -1,10 +1,12 @@
-// RF-16 a RF-19: servicios cercanos por tipo, distancia y cercanía.
-// Responsable: José. Siguiente paso: ficha de detalle (RF-18) y selector de distancia.
-import { useEffect, useMemo, useState } from 'react';
+// RF-16 a RF-19: servicios cercanos por tipo, distancia y cercanía. Responsable: José.
+// Al tocar un servicio se abre su ficha (RF-18).
+import { useEffect, useState } from 'react';
 import { FlatList, Pressable, ScrollView, Text, View } from 'react-native';
-import * as Location from 'expo-location';
+import { router } from 'expo-router';
 import { escuchar } from '../../services/db';
-import { distanciaKm, filtrarPorDistancia, formatearDistancia, ordenarPorCercania } from '../../lib/geo';
+import { useUbicacion } from '../../hooks/useUbicacion';
+import { distanciaKm, formatearDistancia } from '../../lib/geo';
+import { estaAbierto, listaServicios, textoEstado } from '../../lib/servicios';
 import type { Coordenada, Servicio, TipoServicio } from '../../types/modelos';
 import { estilos } from '../../constants/tema';
 
@@ -16,35 +18,26 @@ const TIPOS: { clave: TipoServicio | 'todos'; etiqueta: string }[] = [
   { clave: 'parada', etiqueta: 'Paradas' },
 ];
 
-const DISTANCIA_MAX_KM = 10;
-
 export default function Servicios() {
   const [servicios, setServicios] = useState<Servicio[]>([]);
   const [tipo, setTipo] = useState<TipoServicio | 'todos'>('todos');
-  const [ubicacion, setUbicacion] = useState<Coordenada | null>(null);
+  const { ubicacion } = useUbicacion();
 
   useEffect(() => escuchar<Servicio>('servicios', setServicios), []);
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') return;
-      const pos = await Location.getCurrentPositionAsync({});
-      setUbicacion({ latitud: pos.coords.latitude, longitud: pos.coords.longitude });
-    })();
-  }, []);
-
-  const lista = useMemo(() => {
-    let r = tipo === 'todos' ? servicios : servicios.filter((s) => s.tipo === tipo);
-    if (ubicacion) r = ordenarPorCercania(filtrarPorDistancia(r, ubicacion, DISTANCIA_MAX_KM), ubicacion);
-    return r;
-  }, [servicios, tipo, ubicacion]);
+  const lista = listaServicios(servicios, tipo, ubicacion);
 
   return (
     <View style={estilos.contenedor}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0, marginBottom: 12 }}>
         {TIPOS.map(({ clave, etiqueta }) => (
-          <Pressable key={clave} onPress={() => setTipo(clave)} style={[estilos.chip, tipo === clave && estilos.chipActivo]}>
+          <Pressable
+            key={clave}
+            onPress={() => setTipo(clave)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: tipo === clave }}
+            style={[estilos.chip, tipo === clave && estilos.chipActivo]}
+          >
             <Text style={tipo === clave ? estilos.textoChipActivo : estilos.textoChip}>{etiqueta}</Text>
           </Pressable>
         ))}
@@ -56,15 +49,19 @@ export default function Servicios() {
         data={lista}
         keyExtractor={(s) => s.id}
         ListEmptyComponent={<Text>No hay servicios registrados.</Text>}
-        renderItem={({ item }) => (
-          <View style={estilos.tarjeta}>
-            <Text style={estilos.subtitulo}>{item.nombre}</Text>
-            <Text>{item.direccion ?? 'Sin dirección'}</Text>
-            {item.horario ? <Text>Horario: {item.horario}</Text> : null}
-            {ubicacion ? <Text>A {formatearDistancia(distanciaKm(ubicacion, item))}</Text> : null}
-          </View>
-        )}
+        renderItem={({ item }) => <TarjetaServicio servicio={item} ubicacion={ubicacion} />}
       />
     </View>
+  );
+}
+
+function TarjetaServicio({ servicio, ubicacion }: { servicio: Servicio; ubicacion: Coordenada | null }) {
+  return (
+    <Pressable style={estilos.tarjeta} onPress={() => router.push(`/servicio/${servicio.id}`)}>
+      <Text style={estilos.subtitulo}>{servicio.nombre}</Text>
+      <Text>{servicio.direccion ?? 'Sin dirección'}</Text>
+      <Text>{textoEstado(estaAbierto(servicio.horario, new Date()))}</Text>
+      {ubicacion ? <Text>A {formatearDistancia(distanciaKm(ubicacion, servicio))}</Text> : null}
+    </Pressable>
   );
 }

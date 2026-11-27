@@ -1,88 +1,107 @@
-// RF-10, RF-11, RF-14, RF-15: mapa con puntos de interés, riesgo y referencia.
-// Responsable: José. Al tocar el globo de un punto se abre su ficha (RF-12).
-// Mantener presionado el mapa abre el formulario de punto nuevo (RF-13).
-import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+// Mapa interactivo. Responsable: José.
+// RF-10, RF-11: puntos de interés, riesgo y referencia.
+// RF-12: al tocar el globo de un punto se abre su ficha.
+// RF-13 y RF-30: mantener presionado el mapa permite agregar un punto o reportar una alerta.
+// RF-14: filtros por categoría y distancia. RF-04: se guardan para la siguiente sesión.
+// RF-15: ubicación opcional.
+// RF-31, RF-32: puntos de riesgo y alertas se dibujan como zonas con su color y descripción.
+// RF-39: paradas de transporte con su próxima salida; el chip "Transporte" las muestra u oculta.
+import { useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { router } from 'expo-router';
-import * as Location from 'expo-location';
 import { escuchar } from '../../services/db';
-import type { CategoriaPunto, Punto } from '../../types/modelos';
-import { colorCategoria, estilos, REGION_PILOTO } from '../../constants/tema';
-
-const CATEGORIAS: { clave: CategoriaPunto; etiqueta: string }[] = [
-  { clave: 'interes', etiqueta: 'Interés' },
-  { clave: 'riesgo', etiqueta: 'Riesgo' },
-  { clave: 'referencia', etiqueta: 'Referencia' },
-];
+import { useUbicacion } from '../../hooks/useUbicacion';
+import { usePreferenciasMapa } from '../../hooks/usePreferenciasMapa';
+import { avisoMapa, puntosVisibles, zoomCambio } from '../../lib/mapa';
+import { puntosSinRiesgo, zonasDeRiesgo } from '../../lib/zonas';
+import { comoCapa } from '../../lib/transporte';
+import FiltrosMapa from '../../components/mapa/FiltrosMapa';
+import CapaRiesgo from '../../components/mapa/CapaRiesgo';
+import CapaParadas from '../../components/mapa/CapaParadas';
+import Leyenda from '../../components/mapa/Leyenda';
+import { abrirZona, alMantenerPresionado } from '../../components/mapa/acciones';
+import type { Alerta, Parada, Punto } from '../../types/modelos';
+import { colorCategoria, REGION_PILOTO } from '../../constants/tema';
 
 export default function Mapa() {
   const [puntos, setPuntos] = useState<Punto[]>([]);
-  const [visibles, setVisibles] = useState<CategoriaPunto[]>(['interes', 'riesgo', 'referencia']);
-  const [conUbicacion, setConUbicacion] = useState(false);
+  const [alertas, setAlertas] = useState<Alerta[]>([]);
+  const [paradas, setParadas] = useState<Parada[]>([]);
+  const { permitida, ubicacion } = useUbicacion();
+  const { prefs, cambiar, cargadas } = usePreferenciasMapa();
+  const mapa = useRef<MapView>(null);
+  const zoomAplicado = useRef(false);
 
-  // Escucha la colección "puntos" en tiempo real
+  // Escucha puntos y alertas en tiempo real
   useEffect(() => escuchar<Punto>('puntos', setPuntos), []);
+  useEffect(() => escuchar<Alerta>('alertas', setAlertas), []);
+  useEffect(() => escuchar<Parada>('paradas', setParadas), []);
 
-  // RF-15: la ubicación es opcional; si se niega, el mapa sigue funcionando
+  // RF-04: cuando llegan las preferencias, aplicar una sola vez el zoom guardado
   useEffect(() => {
-    Location.requestForegroundPermissionsAsync().then(({ status }) => setConUbicacion(status === 'granted'));
-  }, []);
+    if (!cargadas || zoomAplicado.current) return;
+    zoomAplicado.current = true;
+    mapa.current?.animateToRegion(
+      { ...REGION_PILOTO, latitudeDelta: prefs.zoomDelta, longitudeDelta: prefs.zoomDelta },
+      300,
+    );
+  }, [cargadas, prefs.zoomDelta]);
 
-  const alternar = (c: CategoriaPunto) =>
-    setVisibles((v) => (v.includes(c) ? v.filter((x) => x !== c) : [...v, c]));
+  const filtro = { ...prefs, ubicacion };
+  const visibles = puntosVisibles(puntosSinRiesgo(puntos), filtro);
+  const zonas = puntosVisibles(zonasDeRiesgo(puntos, alertas), filtro);
+  const paradasVisibles = puntosVisibles(comoCapa(paradas), filtro);
 
   return (
     <View style={{ flex: 1 }}>
       <MapView
+        ref={mapa}
         style={StyleSheet.absoluteFill}
         initialRegion={REGION_PILOTO}
-        showsUserLocation={conUbicacion}
-        onLongPress={(e) => {
-          const { latitude, longitude } = e.nativeEvent.coordinate;
-          router.push({ pathname: '/punto/nuevo', params: { lat: String(latitude), lon: String(longitude) } });
+        showsUserLocation={permitida}
+        onRegionChangeComplete={(r) => {
+          if (zoomCambio(prefs.zoomDelta, r.latitudeDelta)) cambiar({ zoomDelta: r.latitudeDelta });
         }}
+        onLongPress={(e) => alMantenerPresionado(e.nativeEvent.coordinate)}
       >
-        {puntos
-          .filter((p) => visibles.includes(p.categoria))
-          .map((p) => (
-            <Marker
-              key={p.id}
-              coordinate={{ latitude: p.latitud, longitude: p.longitud }}
-              title={p.nombre}
-              description={p.descripcion}
-              pinColor={colorCategoria[p.categoria]}
-              onCalloutPress={() => router.push(`/punto/${p.id}`)}
-            />
-          ))}
+        {visibles.map((p) => (
+          <Marker
+            key={p.id}
+            coordinate={{ latitude: p.latitud, longitude: p.longitud }}
+            title={p.nombre}
+            description={p.descripcion}
+            pinColor={colorCategoria[p.categoria]}
+            onCalloutPress={() => router.push(`/punto/${p.id}`)}
+          />
+        ))}
+        <CapaRiesgo zonas={zonas} onAbrir={abrirZona} />
+        <CapaParadas paradas={paradasVisibles} ahora={new Date()} onAbrir={(id) => router.push(`/parada/${id}`)} />
       </MapView>
 
       <View style={styles.filtros}>
-        {CATEGORIAS.map(({ clave, etiqueta }) => {
-          const activo = visibles.includes(clave);
-          return (
-            <Pressable
-              key={clave}
-              onPress={() => alternar(clave)}
-              style={[estilos.chip, activo && { backgroundColor: colorCategoria[clave], borderColor: colorCategoria[clave] }]}
-            >
-              <Text style={activo ? estilos.textoChipActivo : estilos.textoChip}>{etiqueta}</Text>
-            </Pressable>
-          );
-        })}
+        <FiltrosMapa
+          categorias={prefs.categorias}
+          radioKm={prefs.radioKm}
+          onCategorias={(categorias) => cambiar({ categorias })}
+          onRadio={(radioKm) => cambiar({ radioKm })}
+        />
       </View>
 
-      <Text style={styles.aviso}>
-        {conUbicacion
-          ? 'Mantén presionado el mapa para agregar un punto.'
-          : 'Activa la ubicación para ver tu posición (opcional). Mantén presionado el mapa para agregar un punto.'}
-      </Text>
+      {zonas.length > 0 && (
+        <View style={styles.leyenda}>
+          <Leyenda />
+        </View>
+      )}
+
+      <Text style={styles.aviso}>{avisoMapa(permitida, prefs.radioKm, ubicacion)}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  filtros: { position: 'absolute', top: 12, left: 12, right: 12, flexDirection: 'row' },
+  filtros: { position: 'absolute', top: 12, left: 12, right: 12 },
+  leyenda: { position: 'absolute', bottom: 70, left: 12 },
   aviso: {
     position: 'absolute',
     bottom: 12,

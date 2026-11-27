@@ -163,6 +163,10 @@ export type Parada = Coordenada & {
   nombre: string;
   localidad: Localidad;
   rutas: string[];
-  horarios: string[]; // ej. ["07:00", "07:30"]
+  horarios: string[]; // horas de paso, formato "HH:MM", ej. ["07:00", "07:30"]
+  destino?: string; // a dónde llega la ruta, ej. "Moroleón centro" (RF-41)
+  duracionMin?: number; // minutos del paso a la llegada al destino (RF-41)
+  actualizadoPor?: string; // nombre de quien actualizó los horarios (RF-42)
+  actualizado?: number; // Date.now() de la última actualización (RF-42)
   autorId: string;
 };
