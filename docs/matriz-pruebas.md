@@ -78,8 +78,8 @@ la hace y cómo salió.
 |---|---|---|---|---|---|---|---|
 | RF-10 | Alta | — | Abrir el mapa y navegar por la región piloto comprobando la carga y la respuesta | PF, DE | José | Pendiente | Pendiente |
 | RF-11 | Alta | — | Verificar que se muestran las tres categorías: interés, riesgo y referencia | PF | José | Pendiente | Pendiente |
-| RF-12 | Media | — | Seleccionar un punto y comprobar que muestra su ficha de detalle | PF | José | Pendiente | Pendiente |
-| RF-13 | Media | — | Registrar un punto nuevo y verificar que aparece en el mapa de otro usuario | PF | José | Pendiente | Pendiente |
+| RF-12 | Media | CB-CON-1 a 5, CB-FPT-1 a 6 | Seleccionar un punto y comprobar que muestra su ficha de detalle | PF | José | Pendiente | Pendiente |
+| RF-13 | Media | CB-PTO-1 a 18, CB-FRM-1 a 6, CB-NVP-1 a 2, CB-EDP-1 a 7, CB-FPT-7 a 9 | Registrar un punto nuevo y verificar que aparece en el mapa de otro usuario | PF | José | Pendiente | Pendiente |
 | RF-14 | Media | CB-GEO-1 a 10 | Aplicar cada filtro y comprobar que los puntos visibles corresponden | PF | José | Pendiente | Pendiente |
 | RF-15 | Media | — | Conceder el permiso y ver la posición; negarlo y ver el mensaje informativo | PF | José | Pendiente | Pendiente |
 
@@ -243,4 +243,10 @@ la hace y cómo salió.
 | CB-VLR | 1 a 9 | `__tests__/lib/valoraciones.test.ts` | RF-28, RF-29 |
 | CB-NOT | 1 a 5 | `__tests__/lib/notificaciones.test.ts` | RF-24 |
 | CB-PRM | 1 a 4 | `__tests__/lib/permisos.test.ts` | RF-13, RF-29, RF-45 |
+| CB-CON | 1 a 5 | `__tests__/lib/contacto.test.ts` | RF-12 |
+| CB-FPT | 1 a 9 | `__tests__/pantallas/punto.test.tsx` | RF-12, RF-13 |
+| CB-PTO | 1 a 18 | `__tests__/lib/puntos.test.ts` | RF-13 |
+| CB-FRM | 1 a 6 | `__tests__/pantallas/formulario-punto.test.tsx` | RF-13 |
+| CB-NVP | 1 a 2 | `__tests__/pantallas/nuevo-punto.test.tsx` | RF-13 |
+| CB-EDP | 1 a 7 | `__tests__/pantallas/editar-punto.test.tsx` | RF-13 |
 | DAT | 1 a 4 (validación de datos, no caja blanca) | `__tests__/datos/lugares-piloto.test.ts` | RF-26, RF-27, A-8 ([`datos-piloto.md`](datos-piloto.md)) |
