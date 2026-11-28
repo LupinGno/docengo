@@ -37,7 +37,7 @@ service cloud.firestore {
     // Colecciones con su propio bloque abajo. Se excluyen de la regla genérica porque
     // Firestore suma las reglas con OR: sin la exclusión, la genérica las dejaría pasar.
     function tieneBloquePropio(coleccion) {
-      // 'usuarios' también: sin esto la genérica dejaba crear un perfil con rol admin (hallazgo H11, T-00).
+      // 'usuarios' también va aquí: si no, la regla genérica dejaba a cualquiera darse el rol de admin.
       return coleccion in ['usuarios', 'reportes', 'lugares', 'mensajes', 'avisos'];
     }
 
@@ -132,7 +132,7 @@ service cloud.firestore {
       allow update, delete: if esAdmin();
     }
 
-    // RF-42: cualquier docente actualiza solo los horarios de una parada (T-17).
+    // Cualquier docente puede cambiar solo los horarios de una parada.
     // El resto de la parada lo cambia su autor o un admin (regla genérica).
     match /paradas/{id} {
       allow update: if autenticado()

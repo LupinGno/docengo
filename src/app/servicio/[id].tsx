@@ -1,5 +1,5 @@
-// RF-18: ficha de un servicio (nombre, categoría, dirección, horario y teléfono cuando existan).
-// RF-16: un mapa pequeño muestra dónde está (geolocalizado). Responsable: José.
+// Ficha de un servicio: nombre, categoría, dirección, horario y teléfono (si los tiene).
+// Un mapa pequeño enseña dónde está. Responsable: José.
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';

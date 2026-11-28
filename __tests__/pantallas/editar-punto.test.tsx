@@ -1,4 +1,4 @@
-// Caja blanca: pantalla de edición de punto (RF-13). Ver docs/pruebas-caja-blanca.md, sección 18.
+// Pruebas de la pantalla para editar un punto. Explicación en docs/pruebas-caja-blanca.md, sección 18.
 import { Alert } from 'react-native';
 import { render, screen, userEvent } from '@testing-library/react-native';
 import EditarPunto from '../../src/app/punto/editar/[id]';

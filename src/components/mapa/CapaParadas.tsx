@@ -1,4 +1,4 @@
-// Paradas de transporte en el mapa (RF-39): marcador con ícono de autobús y su próxima salida.
+// Paradas de transporte en el mapa: un marcador con ícono de autobús y su próxima salida.
 import { StyleSheet, View } from 'react-native';
 import { Marker } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';

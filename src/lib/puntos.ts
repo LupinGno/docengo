@@ -1,4 +1,4 @@
-// Validación de puntos aportados por la comunidad (RF-13).
+// Revisa que un punto nuevo o editado tenga datos válidos antes de guardarlo.
 import { REGION_LIMITES } from '../constants/tema';
 import type { CategoriaPunto, Coordenada } from '../types/modelos';
 

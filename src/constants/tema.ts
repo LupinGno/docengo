@@ -10,7 +10,7 @@ export const colores = {
   error: '#C62828',
 };
 
-// RF-11: un color por categoría de punto
+// Un color por cada categoría de punto
 export const colorCategoria: Record<CategoriaPunto, string> = {
   interes: '#1565C0',
   riesgo: '#C62828',
@@ -23,7 +23,7 @@ export const etiquetaCategoria: Record<CategoriaPunto, string> = {
   referencia: 'Referencia',
 };
 
-// RF-32: un color por nivel de riesgo
+// Un color por cada nivel de riesgo
 export const colorNivel: Record<NivelRiesgo, string> = {
   alto: '#C62828',
   medio: '#EF6C00',

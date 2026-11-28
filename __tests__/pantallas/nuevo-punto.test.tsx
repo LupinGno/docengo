@@ -1,4 +1,4 @@
-// Caja blanca: pantalla de punto nuevo (RF-13). Ver docs/pruebas-caja-blanca.md, sección 18.
+// Pruebas de la pantalla para agregar un punto. Explicación en docs/pruebas-caja-blanca.md, sección 18.
 import { render, screen, userEvent } from '@testing-library/react-native';
 import NuevoPunto from '../../src/app/punto/nuevo';
 import { crear } from '../../src/services/db';

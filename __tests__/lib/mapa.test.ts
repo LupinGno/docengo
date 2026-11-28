@@ -1,4 +1,4 @@
-// Caja blanca: filtros y preferencias del mapa (RF-04, RF-14). Ver docs/pruebas-caja-blanca.md, sección 19.
+// Pruebas de los filtros y las preferencias del mapa. Explicación en docs/pruebas-caja-blanca.md, sección 19.
 import {
   alternar,
   avisoMapa,

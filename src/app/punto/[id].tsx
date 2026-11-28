@@ -1,6 +1,6 @@
-// RF-12: ficha de detalle de un punto del mapa. Responsable: José.
+// Ficha de un punto del mapa con todos sus datos. Responsable: José.
 // Muestra nombre, categoría, descripción y contacto (solo si existe).
-// El autor o un admin ven "Editar punto" (RF-13).
+// Solo quien lo creó o un admin ven el botón "Editar punto".
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';

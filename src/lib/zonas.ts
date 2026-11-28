@@ -1,4 +1,4 @@
-// Zonas de riesgo del mapa (RF-31, RF-32). Lógica pura: sin React ni Firebase.
+// Zonas de riesgo del mapa. Solo lógica, sin React ni Firebase.
 // Una zona es un punto de categoría "riesgo" o una alerta de inseguridad.
 import type { Alerta, Coordenada, NivelRiesgo, Punto, TipoAlerta } from '../types/modelos';
 

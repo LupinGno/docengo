@@ -1,4 +1,4 @@
-// Caja blanca: pantallas de transporte (RF-40, RF-42). Ver docs/pruebas-caja-blanca.md, sección 23.
+// Pruebas de las pantallas de transporte. Explicación en docs/pruebas-caja-blanca.md, sección 23.
 import { render, screen, userEvent } from '@testing-library/react-native';
 import Transporte from '../../src/app/transporte';
 import NuevaParada from '../../src/app/parada/nueva';

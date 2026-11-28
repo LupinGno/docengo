@@ -1,4 +1,4 @@
-// RF-42: cualquier docente puede actualizar los horarios de una parada.
+// Pantalla para actualizar los horarios de una parada. Cualquier docente puede hacerlo.
 // Las reglas de Firestore solo le permiten cambiar horarios, duración y quién/cuándo actualizó.
 // Responsable: José.
 import { useEffect, useState } from 'react';

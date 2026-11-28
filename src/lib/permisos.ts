@@ -1,4 +1,4 @@
-// Quién puede editar o eliminar un contenido (RF-13, RF-29, RF-45).
+// Decide quién puede editar o borrar algo: quien lo creó o un admin.
 // Debe coincidir con firestore.rules: esAutor() || esAdmin().
 import type { Actor } from '../types/modelos';
 

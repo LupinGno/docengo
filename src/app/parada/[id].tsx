@@ -1,5 +1,5 @@
-// RF-41: ficha de una parada con la próxima salida y la tabla de horarios (paso → llegada).
-// RF-42: cualquier docente puede actualizar los horarios; se muestra quién y cuándo.
+// Ficha de una parada: su próxima salida y la tabla de horarios (hora de paso y de llegada).
+// Cualquier docente puede actualizar los horarios; se muestra quién lo hizo y cuándo.
 // Responsable: José.
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';

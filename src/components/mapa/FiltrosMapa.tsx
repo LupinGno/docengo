@@ -1,4 +1,4 @@
-// Chips de filtros del mapa: capas (RF-11, RF-14, RF-39) y distancia (RF-14).
+// Botones de filtros del mapa: qué capas se ven y a qué distancia.
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import { alternar, etiquetaRadio, RADIOS_KM, type CapaMapa } from '../../lib/mapa';
 import { colorCategoria, colores, estilos } from '../../constants/tema';

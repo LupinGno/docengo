@@ -1,4 +1,4 @@
-// Convierte el contacto escrito por la comunidad en un enlace que el celular sabe abrir (RF-12).
+// Convierte el contacto que escribió la comunidad en un enlace que el celular puede abrir.
 // 10 dígitos (con o sin espacios o guiones) → llamada; con @ → correo; otra cosa → no hay botón.
 
 export function contactoComoEnlace(contacto?: string): string | null {

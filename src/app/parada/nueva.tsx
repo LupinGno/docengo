@@ -1,4 +1,4 @@
-// RF-42: la comunidad registra una parada. Ubicación: la del mapa (mantener presionado) o la del docente.
+// Pantalla para registrar una parada nueva. Usa el lugar donde presionaste el mapa o tu ubicación.
 // Responsable: José.
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';

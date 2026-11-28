@@ -1,4 +1,4 @@
-// Transporte público (RF-39 a RF-42). Lógica pura: sin React ni Firebase.
+// Transporte público: horarios, próxima salida y paradas. Solo lógica, sin React ni Firebase.
 // Horarios en formato "HH:MM" (24 horas).
 import { filtrarPorDistancia } from './geo';
 import { dentroDeRegion } from './puntos';
@@ -38,7 +38,7 @@ export function horaLlegada(paso: string, duracionMin: number): string {
   return aHora((aMinutos(paso) + duracionMin) % 1440);
 }
 
-/** Texto de la próxima salida para la ficha y el globo del mapa (RF-41). */
+/** Texto de la próxima salida para la ficha y el globo del mapa. */
 export function textoProximaSalida(horarios: string[], ahora: Date, duracionMin?: number): string {
   if (horarios.length === 0) return 'Sin horarios registrados';
   const proxima = proximaSalida(horarios, ahora);
@@ -50,7 +50,7 @@ export function textoProximaSalida(horarios: string[], ahora: Date, duracionMin?
 export const comoCapa = <T extends object>(paradas: T[]) =>
   paradas.map((p) => ({ ...p, categoria: 'transporte' as const }));
 
-// ───────────── T-17: zonas sin cobertura (RF-40) y registro comunitario (RF-42) ─────────────
+// ───────────── Zonas sin paradas y registro de paradas ─────────────
 
 /** Radio para "Mi ubicación": si no hay parada a 1 km o menos, se considera sin cobertura. */
 export const RADIO_COBERTURA_KM = 1;
@@ -65,7 +65,7 @@ export function paradasDeZona<T extends Coordenada & { localidad: string }>(para
   return filtrarPorDistancia(paradas, zona.coord, zona.radioKm);
 }
 
-/** RF-40: sin paradas en la zona = mostrar la alerta de medio alternativo. */
+/** Si la zona no tiene paradas, se muestra el aviso de buscar otro medio. */
 export const necesitaMedioAlternativo = (paradasZona: unknown[]) => paradasZona.length === 0;
 
 /** "07:00, 7:30, 25:00" → horarios válidos normalizados y ordenados, y los que no se entendieron. */
@@ -94,7 +94,7 @@ export function leerDuracion(texto: string): { valor: number | null; error: stri
   return { valor: n, error: null };
 }
 
-/** Valida los horarios escritos por la comunidad (RF-42). */
+/** Revisa que los horarios que escribió la comunidad sean válidos. */
 export function validarHorarios(horariosTexto: string, duracionTexto: string): string | null {
   const { horarios, invalidos } = parsearHorarios(horariosTexto);
   if (invalidos.length > 0) return `Revisa estos horarios: ${invalidos.join(', ')}. Usa el formato 07:30.`;
@@ -102,7 +102,7 @@ export function validarHorarios(horariosTexto: string, duracionTexto: string): s
   return leerDuracion(duracionTexto).error;
 }
 
-/** Valida el formulario de parada nueva (RF-42). */
+/** Revisa el formulario de parada nueva. */
 export function validarParada(
   p: { nombre: string; localidad: string; horariosTexto: string; duracionTexto: string } & Coordenada,
 ): string | null {

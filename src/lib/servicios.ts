@@ -1,4 +1,4 @@
-// Servicios cercanos (RF-16 a RF-19). Lógica pura: sin React ni Firebase.
+// Servicios cercanos: buscar, filtrar y ordenar. Solo lógica, sin React ni Firebase.
 import { filtrarPorDistancia, ordenarPorCercania } from './geo';
 import type { Coordenada, TipoServicio } from '../types/modelos';
 
@@ -9,7 +9,7 @@ export const ETIQUETA_TIPO: Record<TipoServicio, string> = {
   parada: 'Parada de autobús',
 };
 
-/** Distancia máxima de la lista de servicios cuando hay ubicación (RF-17). */
+/** Distancia máxima de la lista de servicios cuando hay ubicación. */
 export const DISTANCIA_MAX_KM = 10;
 
 /** Formato acordado: "9:00 a 21:00" (también "22:00 a 02:00" si cruza la medianoche). */
@@ -33,7 +33,7 @@ export function textoEstado(abierto: boolean | null): string {
   return abierto ? 'Abierto ahora' : 'Cerrado';
 }
 
-/** Servicios sin coordenadas numéricas válidas (para verificar el 100 % de RF-16). */
+/** Servicios que no tienen coordenadas válidas (para revisar que todos estén en el mapa). */
 export function sinCoordenadas<T extends { latitud: unknown; longitud: unknown }>(lista: T[]): T[] {
   return lista.filter((s) => !Number.isFinite(s.latitud) || !Number.isFinite(s.longitud));
 }

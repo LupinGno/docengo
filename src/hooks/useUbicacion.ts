@@ -1,4 +1,4 @@
-// Ubicación del docente (RF-15). Opcional: si se niega el permiso, la app sigue funcionando.
+// Ubicación del docente. Es opcional: si niega el permiso, la app sigue funcionando.
 import { useEffect, useState } from 'react';
 import * as Location from 'expo-location';
 import type { Coordenada } from '../types/modelos';
