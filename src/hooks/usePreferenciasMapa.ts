@@ -11,7 +11,6 @@ export function usePreferenciasMapa() {
 
   const guardadas = perfil?.preferencias as Partial<PreferenciasMapa> | undefined;
   const prefs = preferenciasConDefecto({ ...guardadas, ...local });
-  console.log('PREFS', usuario?.email, JSON.stringify(guardadas), JSON.stringify(local));
 
   function cambiar(cambios: Partial<PreferenciasMapa>) {
     // En pantalla solo se guarda lo que cambió, para no tapar lo guardado en el perfil.
