@@ -1,4 +1,4 @@
-// Caja blanca: servicios (RF-16 a RF-19). Ver docs/pruebas-caja-blanca.md, sección 20.
+// Pruebas de la lista de servicios cercanos. Explicación en docs/pruebas-caja-blanca.md, sección 20.
 import { estaAbierto, listaServicios, sinCoordenadas, textoEstado } from '../../src/lib/servicios';
 
 const a = (h: number, m: number) => new Date(2026, 10, 24, h, m);

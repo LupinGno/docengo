@@ -1,4 +1,4 @@
-// Campos de horarios y duración, compartidos por "registrar parada" y "actualizar horarios" (RF-42).
+// Campos de horarios y duración. Los usan "registrar parada" y "actualizar horarios".
 import { Text, TextInput } from 'react-native';
 import { estilos } from '../constants/tema';
 

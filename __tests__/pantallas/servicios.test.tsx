@@ -1,4 +1,4 @@
-// Caja blanca: pestaña Servicios y ficha de servicio (RF-16 a RF-19).
+// Pruebas de la pestaña Servicios y de la ficha de un servicio.
 // Ver docs/pruebas-caja-blanca.md, sección 20.
 import { Linking } from 'react-native';
 import { render, screen, userEvent } from '@testing-library/react-native';

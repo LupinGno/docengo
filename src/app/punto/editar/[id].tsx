@@ -1,4 +1,4 @@
-// RF-13: editar o eliminar un punto propio (o cualquiera, si eres admin). Responsable: José.
+// Pantalla para editar o borrar un punto tuyo (un admin puede con cualquiera). Responsable: José.
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';

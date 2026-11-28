@@ -1,4 +1,4 @@
-// Caja blanca: función guardar() de FormularioPunto (RF-13). Ver docs/pruebas-caja-blanca.md, sección 18.
+// Pruebas del botón Guardar del formulario de punto. Explicación en docs/pruebas-caja-blanca.md, sección 18.
 import { render, screen, userEvent } from '@testing-library/react-native';
 import FormularioPunto from '../../src/components/FormularioPunto';
 

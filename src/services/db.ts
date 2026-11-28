@@ -46,7 +46,7 @@ export function escucharDoc<T>(nombre: string, id: string, alCambiar: (dato: T |
   );
 }
 
-/** Alias de escucharDoc (T-00): lo usan la sesión, los puntos, los servicios y las paradas. */
+/** Otro nombre para escucharDoc. Lo usan la sesión, los puntos, los servicios y las paradas. */
 export const escucharUno = escucharDoc;
 
 /** Lee una sola vez los documentos que cumplen las restricciones (sin escuchar cambios). */

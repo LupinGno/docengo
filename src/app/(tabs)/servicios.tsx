@@ -1,5 +1,5 @@
-// RF-16 a RF-19: servicios cercanos por tipo, distancia y cercanía. Responsable: José.
-// Al tocar un servicio se abre su ficha (RF-18).
+// Lista de servicios cercanos: se puede buscar por tipo y ordenar por cercanía. Responsable: José.
+// Al tocar un servicio se abre su ficha.
 import { useEffect, useState } from 'react';
 import { FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';

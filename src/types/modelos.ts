@@ -27,7 +27,7 @@ export type RegistroAvisos = {
   pushToken?: string; // token de Expo (Plan A); no existe en Expo Go
 };
 
-// RF-01, RF-04, RF-43. Colección: "usuarios" (el id del documento es el uid)
+// Perfil del usuario. Colección: "usuarios" (el id del documento es el uid)
 export type Rol = 'docente' | 'admin';
 
 export type Perfil = {
@@ -36,7 +36,7 @@ export type Perfil = {
   correo: string;
   rol: Rol;
   institucion?: string;
-  preferencias?: Record<string, unknown>; // se define mejor en T-05
+  preferencias?: Record<string, unknown>; // filtros del mapa guardados
 };
 
 /** Lo mínimo para decidir permisos: quién es y qué rol tiene. */
@@ -164,9 +164,9 @@ export type Parada = Coordenada & {
   localidad: Localidad;
   rutas: string[];
   horarios: string[]; // horas de paso, formato "HH:MM", ej. ["07:00", "07:30"]
-  destino?: string; // a dónde llega la ruta, ej. "Moroleón centro" (RF-41)
-  duracionMin?: number; // minutos del paso a la llegada al destino (RF-41)
-  actualizadoPor?: string; // nombre de quien actualizó los horarios (RF-42)
-  actualizado?: number; // Date.now() de la última actualización (RF-42)
+  destino?: string; // a dónde llega la ruta, ej. "Moroleón centro"
+  duracionMin?: number; // minutos desde que pasa hasta que llega al destino
+  actualizadoPor?: string; // nombre de quien actualizó los horarios
+  actualizado?: number; // fecha de la última actualización (Date.now())
   autorId: string;
 };

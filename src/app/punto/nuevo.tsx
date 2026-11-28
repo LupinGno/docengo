@@ -1,4 +1,4 @@
-// RF-13: registrar un punto. Se llega manteniendo presionado el mapa. Responsable: José.
+// Pantalla para agregar un punto. Se abre al mantener presionado el mapa. Responsable: José.
 import { Text, View } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import FormularioPunto, { type DatosPunto } from '../../components/FormularioPunto';

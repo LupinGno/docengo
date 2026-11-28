@@ -1,4 +1,4 @@
-// Caja blanca: pantalla de ficha de punto (RF-12, botón Editar de RF-13).
+// Pruebas de la ficha de un punto y de su botón Editar.
 // Ver docs/pruebas-caja-blanca.md, secciones 8 y 9.
 import { Linking } from 'react-native';
 import { render, screen, userEvent } from '@testing-library/react-native';

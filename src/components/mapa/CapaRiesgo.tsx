@@ -1,4 +1,4 @@
-// Dibuja cada zona de riesgo: un círculo de su color y un marcador con su descripción (RF-31, RF-32).
+// Dibuja cada zona de riesgo: un círculo de su color y un marcador con su descripción.
 import { Circle, Marker } from 'react-native-maps';
 import { RADIO_ZONA_M, textoZona, type ZonaRiesgo } from '../../lib/zonas';
 import { colorNivel } from '../../constants/tema';

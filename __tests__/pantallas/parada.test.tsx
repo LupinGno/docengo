@@ -1,4 +1,4 @@
-// Caja blanca: ficha de parada y capa de paradas del mapa (RF-39, RF-41).
+// Pruebas de la ficha de una parada y de las paradas en el mapa.
 // Ver docs/pruebas-caja-blanca.md, sección 22.
 import { render, screen } from '@testing-library/react-native';
 import FichaParada from '../../src/app/parada/[id]';

@@ -1,4 +1,4 @@
-// Caja blanca: validación de puntos (RF-13). Ver docs/pruebas-caja-blanca.md, sección 18.
+// Pruebas de la validación de puntos. Explicación en docs/pruebas-caja-blanca.md, sección 18.
 import { coordenadaDeParametros, dentroDeRegion, formularioInicial, validarPunto } from '../../src/lib/puntos';
 import { REGION_LIMITES as L } from '../../src/constants/tema';
 

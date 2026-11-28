@@ -1,4 +1,4 @@
-// Caja blanca: zonas de riesgo del mapa (RF-31, RF-32). Ver docs/pruebas-caja-blanca.md, sección 21.
+// Pruebas de las zonas de riesgo del mapa. Explicación en docs/pruebas-caja-blanca.md, sección 21.
 import { DESCRIPCION_RIESGO, puntosSinRiesgo, textoZona, zonasDeRiesgo } from '../../src/lib/zonas';
 import type { Alerta, CategoriaPunto, NivelRiesgo, Punto, TipoAlerta } from '../../src/types/modelos';
 

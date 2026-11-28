@@ -1,4 +1,4 @@
-// Leyenda de niveles de riesgo (RF-32).
+// Leyenda con los colores de cada nivel de riesgo.
 import { StyleSheet, Text, View } from 'react-native';
 import { colorNivel } from '../../constants/tema';
 import type { NivelRiesgo } from '../../types/modelos';

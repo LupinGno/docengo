@@ -1,8 +1,8 @@
-// Filtros y preferencias del mapa (RF-04, RF-14). Lógica pura: sin React ni Firebase.
+// Filtros y preferencias del mapa. Solo lógica, sin React ni Firebase, para poder probarla fácil.
 import { distanciaKm } from './geo';
 import type { CategoriaPunto, Coordenada } from '../types/modelos';
 
-/** Capas que se pueden prender y apagar: las 3 categorías de puntos y el transporte (T-14). */
+/** Capas que se pueden prender y apagar: las 3 categorías de puntos y el transporte. */
 export type CapaMapa = CategoriaPunto | 'transporte';
 
 export type PreferenciasMapa = {

@@ -1,4 +1,4 @@
-// Caja blanca: transporte. RF-41 (sección 13) y RF-40, RF-42 (sección 14) de docs/pruebas-caja-blanca.md.
+// Pruebas de transporte: horarios, zonas sin paradas y registro de paradas. Explicación en docs/pruebas-caja-blanca.md, secciones 22 y 23.
 import {
   aHora,
   aMinutos,
@@ -77,7 +77,7 @@ test('CB-TRA-14 comoCapa marca las paradas como capa "transporte"', () => {
   expect(comoCapa([{ id: 'p1' }])).toEqual([{ id: 'p1', categoria: 'transporte' }]);
 });
 
-// ───────────── T-17: RF-40 y RF-42. Ver docs/pruebas-caja-blanca.md, sección 23. ─────────────
+// ───────────── Zonas sin paradas y registro de paradas (sección 23) ─────────────
 
 const moroleon = { latitud: 20.1294, longitud: -101.1914 };
 const pMoroleon1 = { id: 'm1', localidad: 'Moroleón', latitud: 20.1294, longitud: -101.1914 };

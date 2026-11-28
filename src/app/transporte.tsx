@@ -1,5 +1,5 @@
-// RF-40: transporte por zona y alerta de medio alternativo cuando no hay paradas.
-// RF-42: botón para que la comunidad registre paradas. Responsable: José.
+// Paradas por zona. Si una zona no tiene paradas, avisa que hay que buscar otro medio.
+// Tiene un botón para registrar paradas nuevas. Responsable: José.
 import { useEffect, useState } from 'react';
 import { FlatList, Pressable, ScrollView, Text, View } from 'react-native';
 import { router, Stack } from 'expo-router';
@@ -66,7 +66,7 @@ export default function Transporte() {
   );
 }
 
-/** RF-40: alerta de medio alternativo. */
+/** Aviso de que la zona no tiene paradas y hay que buscar otro medio. */
 function AlertaSinTransporte() {
   return (
     <View style={[estilos.tarjeta, { backgroundColor: '#FFF3E0', borderColor: '#EF6C00' }]} accessibilityRole="alert">

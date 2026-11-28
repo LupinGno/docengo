@@ -1,4 +1,4 @@
-// Formulario de punto, compartido por "nuevo" y "editar" (RF-13).
+// Formulario de punto. Lo usan las pantallas "nuevo" y "editar".
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { formularioInicial, validarPunto, type CamposPunto } from '../lib/puntos';
@@ -23,7 +23,7 @@ type Props = {
 const CATEGORIAS: CategoriaPunto[] = ['interes', 'riesgo', 'referencia'];
 
 export default function FormularioPunto({ coordenada, inicial, textoBoton, onGuardar }: Props) {
-  // Refactor por el hallazgo H12: los valores iniciales viven en src/lib/puntos.ts
+  // Los valores iniciales salen de src/lib/puntos.ts para que este componente no sea tan complejo
   const [valores] = useState(() => formularioInicial(inicial));
   const [nombre, setNombre] = useState(valores.nombre);
   const [categoria, setCategoria] = useState(valores.categoria);
@@ -98,7 +98,7 @@ export default function FormularioPunto({ coordenada, inicial, textoBoton, onGua
   );
 }
 
-/** Chips de categoría; separado del formulario para mantener su V(G) bajo 10 (hallazgo H12). */
+/** Botones de categoría. Van aparte para que el formulario no pase de complejidad 10. */
 function SelectorCategoria({ valor, onCambiar }: { valor: string; onCambiar: (c: CategoriaPunto) => void }) {
   return (
     <View style={{ flexDirection: 'row', marginBottom: 12 }}>
