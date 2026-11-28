@@ -1,4 +1,4 @@
-// Preferencias del mapa guardadas en usuarios/{uid}.preferencias (RF-04).
+// Guarda y lee las preferencias del mapa del usuario (en usuarios/{uid}.preferencias).
 // Se aplican al instante (estado local) y se guardan en Firestore para la siguiente sesión.
 import { useState } from 'react';
 import { actualizar } from '../services/db';
@@ -11,12 +11,15 @@ export function usePreferenciasMapa() {
 
   const guardadas = perfil?.preferencias as Partial<PreferenciasMapa> | undefined;
   const prefs = preferenciasConDefecto({ ...guardadas, ...local });
+  console.log('PREFS', usuario?.email, JSON.stringify(guardadas), JSON.stringify(local));
 
   function cambiar(cambios: Partial<PreferenciasMapa>) {
-    const nuevas = { ...prefs, ...cambios };
-    setLocal(nuevas);
-    if (!usuario) return;
-    actualizar('usuarios', usuario.uid, { preferencias: nuevas }).catch((e) =>
+    // En pantalla solo se guarda lo que cambió, para no tapar lo guardado en el perfil.
+    setLocal((antes) => ({ ...antes, ...cambios }));
+    // Sin sesión, o si el perfil todavía no llega, no se guarda en Firestore:
+    // se borrarían las preferencias guardadas con las de por defecto.
+    if (!usuario || !perfil) return;
+    actualizar('usuarios', usuario.uid, { preferencias: { ...prefs, ...cambios } }).catch((e) =>
       console.warn('[preferencias del mapa]', e.message),
     );
   }

@@ -882,12 +882,14 @@ Casos complementarios: CB-MAP-9 (punto a ~11 km, fuera) y CB-MAP-10 (punto exact
 | | | tocar categoría apagada | la agrega | CB-FMA-2 | Pasa |
 | | | tocar "5 km" | `onRadio(5)` | CB-FMA-3 | Pasa |
 | | | radio actual 10 | "10 km" seleccionado, "Todos" no | CB-FMA-4 | Pasa |
-| usePreferenciasMapa | 2 (`cambiar`: 2) | perfil sin preferencias | valores por defecto | CB-PRF-1 | Pasa |
+| usePreferenciasMapa | 3 (`cambiar`: `if` + `\|\|`) | perfil sin preferencias | valores por defecto | CB-PRF-1 | Pasa |
 | | | perfil con preferencias | se usan | CB-PRF-2 | Pasa |
 | | | `cambiar({ radioKm: 10 })` con sesión | cambia al instante y guarda las 3 preferencias en `usuarios/u1` | CB-PRF-3 | Pasa |
 | | | `cambiar` sin sesión | cambia en pantalla, **no** guarda | CB-PRF-4 | Pasa |
+| | | `cambiar` con sesión pero el perfil aún cargando | **no** guarda; cuando llega el perfil se ven sus preferencias más el cambio | CB-PRF-5 | Pasa |
+| | | `cambiar({ radioKm: 10 })` con preferencias guardadas | guarda las guardadas más el cambio | CB-PRF-6 | Pasa |
 
-La pantalla `Mapa` quedó con V(G) = 1: toda la lógica está en `src/lib/mapa.ts` y en el hook.
+La pantalla `Mapa` quedó con V(G) = 1: toda la lógica está en `src/lib/mapa.ts` y en el hook. Su `onRegionChangeComplete` solo guarda el zoom después de aplicar el guardado (hallazgo H15).
 
 ---
 
@@ -1001,9 +1003,9 @@ El mapa real necesita el celular; en las pruebas se simulan `Circle` y `Marker` 
 | | | tocar el globo | llama `onAbrir` con esa zona | CB-CRI-2 | Pasa |
 | | | sin zonas | no dibuja nada | CB-CRI-3 | Pasa |
 | Leyenda | 1 | — | Alto, Medio, Bajo | CB-LEY-1 | Pasa |
-| `alMantenerPresionado` | 1 | mantener presionado | 3 opciones: Agregar punto, Reportar alerta aquí, Cancelar | CB-ACC-1 | Pasa |
+| `alMantenerPresionado` | 1 | mantener presionado | 4 opciones: Agregar punto, Reportar alerta, Registrar parada aquí, Cancelar | CB-ACC-1 | Pasa |
 | | | "Agregar punto" | `/punto/nuevo` con `lat` y `lon` | CB-ACC-2 | Pasa |
-| | | "Reportar alerta aquí" | `/alerta/nueva` con `lat` y `lon` | CB-ACC-3 | Pasa |
+| | | "Reportar alerta" | pestaña `/alertas`, donde está el formulario (H16) | CB-ACC-3 | Pasa |
 | `abrirZona` | 2 (`if`) | zona de un punto | `/punto/p1` | CB-ACC-4 | Pasa |
 | | | zona de una alerta | `/alertas` | CB-ACC-5 | Pasa |
 
@@ -1173,3 +1175,5 @@ Se numeran desde H11 para no repetir los de `revision-seguridad.md` (H1 a H10).
 | H12 | FormularioPunto.tsx | La regla `complexity` de ESLint rechazó el componente con V(G) = 13 (cuatro `??` en los `useState` y los chips de categoría dentro del mismo componente). | Refactorizado en T-02: valores iniciales en `formularioInicial` (src/lib, con pruebas) y chips en `SelectorCategoria`. V(G) bajó a 5. |
 | H13 | punto/editar/[id].tsx | Al programar la edición se pasaba el punto completo como `coordenada`; al guardar, sus datos viejos (nombre, categoría) se esparcían después de los nuevos y los pisaban. Encontrado al revisar el código antes de probar. | Corregido en T-02: la pantalla pasa solo latitud y longitud y el formulario solo toma esas dos. Prueba de regresión CB-FRM-6. |
 | H14 | components/mapa/FiltrosMapa.tsx | FiltrosMapa importaba el color de transporte desde CapaParadas, que a su vez importa el módulo nativo del mapa. En Jest no existe ese módulo y la suite de FiltrosMapa dejaba de correr ("Test suite failed to run"), aunque el resumen seguía diciendo que todas las pruebas pasaban. | Corregido en T-14: la constante se movió a `src/lib/transporte.ts`, que no depende del mapa. Desde entonces se revisa también la línea "Test Suites:" del reporte, no solo "Tests:". |
+| H15 | hooks/usePreferenciasMapa.ts y (tabs)/index.tsx | En la prueba manual de RF-04 las preferencias no se conservaban al reabrir la app. Al abrir el mapa, Android avisa su región inicial antes de que llegue el perfil; esa región cuenta como cambio de zoom y `cambiar` guardaba las preferencias por defecto encima de las del docente. | Corregido: `cambiar` no guarda mientras el perfil no llega y en pantalla solo aplica lo que cambió; el mapa ignora la región inicial. Prueba de regresión CB-PRF-5 (falla con el código anterior). |
+| H16 | components/mapa/acciones.ts | "Reportar alerta aquí" mandaba a `/alerta/nueva`, una pantalla que no existe: el formulario de alertas quedó en la pestaña Alertas. En Jest no se notaba porque las rutas tipadas solo se generan al correr `expo start`; en la máquina de José, `tsc` lo marcó como error. | Corregido: la opción se llama "Reportar alerta" y abre la pestaña `/alertas`. El formulario usa la ubicación del celular, no la del mapa. CB-ACC-3 actualizada. |

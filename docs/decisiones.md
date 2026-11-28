@@ -28,3 +28,4 @@ Cada decisión de diseño que afecte requisitos, datos o pruebas se anota aquí,
 | 27/11/2026 | Cualquier docente puede actualizar horarios; solo el autor o un admin cambia el resto de la parada | RF-42 pide que la comunidad actualice; las reglas limitan qué campos | RF-42 | T-17 |
 | 27/11/2026 | Duración del trayecto opcional, de 1 a 300 minutos | Evita datos absurdos sin obligar a capturarla | RF-41, RF-42 | T-17 |
 | 27/11/2026 | Se registra quién y cuándo actualizó los horarios | Da confianza a la información comunitaria | RF-42 | T-17 |
+| 27/11/2026 | "Reportar alerta" desde el mapa abre la pestaña Alertas (antes "Reportar alerta aquí" a una pantalla que no existía) | El formulario de alertas quedó en esa pestaña y usa la ubicación del celular (H16) | RF-30 | T-11 |

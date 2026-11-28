@@ -1,4 +1,4 @@
-// Caja blanca: chips de filtros del mapa y hook de preferencias (RF-04, RF-14).
+// Pruebas de los botones de filtros del mapa y de las preferencias guardadas.
 // Ver docs/pruebas-caja-blanca.md, sección 19.
 import { act, render, renderHook, screen, userEvent } from '@testing-library/react-native';
 import FiltrosMapa from '../../src/components/mapa/FiltrosMapa';
@@ -85,5 +85,26 @@ describe('usePreferenciasMapa', () => {
     await act(async () => result.current.cambiar({ radioKm: 1 }));
     expect(result.current.prefs.radioKm).toBe(1);
     expect(actualizar).not.toHaveBeenCalled();
+  });
+
+  test('CB-PRF-5 perfil aún cargando: no guarda y no tapa lo guardado cuando llega', async () => {
+    (useAuth as jest.Mock).mockReturnValue({ usuario: { uid: 'u1' }, perfil: null });
+    const { result, rerender } = await renderHook(() => usePreferenciasMapa());
+    expect(result.current.cargadas).toBe(false);
+    await act(async () => result.current.cambiar({ zoomDelta: 0.3 }));
+    expect(actualizar).not.toHaveBeenCalled();
+
+    sesion({ categorias: ['interes'], radioKm: 5 });
+    await rerender({});
+    expect(result.current.prefs).toEqual({ categorias: ['interes'], radioKm: 5, zoomDelta: 0.3 });
+  });
+
+  test('CB-PRF-6 cambiar con preferencias guardadas: guarda lo guardado más el cambio', async () => {
+    sesion({ categorias: ['interes'], radioKm: 5 });
+    const { result } = await renderHook(() => usePreferenciasMapa());
+    await act(async () => result.current.cambiar({ radioKm: 10 }));
+    expect(actualizar).toHaveBeenCalledWith('usuarios', 'u1', {
+      preferencias: { categorias: ['interes'], radioKm: 10, zoomDelta: PREFERENCIAS_DEFECTO.zoomDelta },
+    });
   });
 });

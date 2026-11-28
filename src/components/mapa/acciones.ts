@@ -5,12 +5,13 @@ import type { ZonaRiesgo } from '../../lib/zonas';
 
 type Coordenadas = { latitude: number; longitude: number };
 
-/** Mantener presionado el mapa: agregar un punto (RF-13), reportar una alerta (RF-30) o registrar una parada (RF-42). */
+/** Opciones al mantener presionado el mapa: agregar un punto, reportar una alerta o registrar una parada. */
 export function alMantenerPresionado({ latitude, longitude }: Coordenadas) {
   const params = { lat: String(latitude), lon: String(longitude) };
   Alert.alert('¿Qué quieres agregar aquí?', undefined, [
     { text: 'Agregar punto', onPress: () => router.push({ pathname: '/punto/nuevo', params }) },
-    { text: 'Reportar alerta aquí', onPress: () => router.push({ pathname: '/alerta/nueva', params }) },
+    // El formulario de alertas está en la pestaña Alertas y toma la ubicación del celular.
+    { text: 'Reportar alerta', onPress: () => router.push('/alertas') },
     { text: 'Registrar parada aquí', onPress: () => router.push({ pathname: '/parada/nueva', params }) },
     { text: 'Cancelar', style: 'cancel' },
   ]);

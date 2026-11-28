@@ -1,11 +1,11 @@
 // Mapa interactivo. Responsable: José.
-// RF-10, RF-11: puntos de interés, riesgo y referencia.
-// RF-12: al tocar el globo de un punto se abre su ficha.
-// RF-13 y RF-30: mantener presionado el mapa permite agregar un punto o reportar una alerta.
-// RF-14: filtros por categoría y distancia. RF-04: se guardan para la siguiente sesión.
-// RF-15: ubicación opcional.
-// RF-31, RF-32: puntos de riesgo y alertas se dibujan como zonas con su color y descripción.
-// RF-39: paradas de transporte con su próxima salida; el chip "Transporte" las muestra u oculta.
+// Muestra los puntos de interés, de riesgo y de referencia.
+// Al tocar el globo de un punto se abre su ficha.
+// Si mantienes presionado el mapa puedes agregar un punto o reportar una alerta.
+// Tiene filtros por categoría y distancia, y se guardan para la próxima vez.
+// La ubicación es opcional.
+// Los puntos de riesgo y las alertas se dibujan como zonas con su color y descripción.
+// Muestra las paradas de transporte con su próxima salida; el botón "Transporte" las prende o apaga.
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
@@ -38,7 +38,7 @@ export default function Mapa() {
   useEffect(() => escuchar<Alerta>('alertas', setAlertas), []);
   useEffect(() => escuchar<Parada>('paradas', setParadas), []);
 
-  // RF-04: cuando llegan las preferencias, aplicar una sola vez el zoom guardado
+  // Cuando llegan las preferencias, se aplica una sola vez el zoom guardado
   useEffect(() => {
     if (!cargadas || zoomAplicado.current) return;
     zoomAplicado.current = true;
@@ -61,7 +61,10 @@ export default function Mapa() {
         initialRegion={REGION_PILOTO}
         showsUserLocation={permitida}
         onRegionChangeComplete={(r) => {
-          if (zoomCambio(prefs.zoomDelta, r.latitudeDelta)) cambiar({ zoomDelta: r.latitudeDelta });
+          // Antes de aplicar el zoom guardado, el mapa avisa su región inicial: esa no se guarda.
+          if (zoomAplicado.current && zoomCambio(prefs.zoomDelta, r.latitudeDelta)) {
+            cambiar({ zoomDelta: r.latitudeDelta });
+          }
         }}
         onLongPress={(e) => alMantenerPresionado(e.nativeEvent.coordinate)}
       >
