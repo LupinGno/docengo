@@ -60,7 +60,7 @@ la hace y cómo salió.
 | RF-01 | Media | — | Crear un perfil, cerrar sesión y comprobar que la información se conserva | PF | Carlos | Pendiente | Pendiente |
 | RF-02 | Media | — | Cambiar una preferencia y verificar que las contribuciones anteriores conservan contenido y autoría | PF | Carlos | Pendiente | Pendiente |
 | RF-03 | Baja | — | Cambiar el idioma y comprobar que las etiquetas se actualizan sin reiniciar los datos | PF | Por asignar | Pendiente | Pendiente |
-| RF-04 | Media | CB-MAP-1 a 4, CB-PRF-1 a 6 | Configurar las categorías visibles y comprobar que el mapa las respeta en la siguiente sesión | PF | José (T-05) | Pendiente | Pendiente |
+| RF-04 | Media | CB-MAP-1 a 4, CB-PRF-1 a 6 | Configurar las categorías visibles y comprobar que el mapa las respeta en la siguiente sesión | PF | José (T-05) | Pasa | Pendiente |
 
 ### 4.2 Registro, autenticación y cuenta — CU-01
 
@@ -76,21 +76,21 @@ la hace y cómo salió.
 
 | ID | Prioridad | Pruebas CB | Prueba manual (criterio del SRS) | Tipo | Responsable | Resultado | Piloto |
 |---|---|---|---|---|---|---|---|
-| RF-10 | Alta | — | Abrir el mapa y navegar por la región piloto comprobando la carga y la respuesta | PF, DE | José | Pendiente | Pendiente |
-| RF-11 | Alta | — | Verificar que se muestran las tres categorías: interés, riesgo y referencia | PF | José | Pendiente | Pendiente |
-| RF-12 | Media | CB-CON-1 a 5, CB-FPT-1 a 6 | Seleccionar un punto y comprobar que muestra su ficha de detalle | PF | José | Pendiente | Pendiente |
-| RF-13 | Media | CB-PTO-1 a 18, CB-FRM-1 a 6, CB-NVP-1 a 2, CB-EDP-1 a 7, CB-FPT-7 a 9 | Registrar un punto nuevo y verificar que aparece en el mapa de otro usuario | PF | José | Pendiente | Pendiente |
-| RF-14 | Media | CB-GEO-1 a 10, CB-MAP-5 a 16, CB-FMA-1 a 4 | Aplicar cada filtro y comprobar que los puntos visibles corresponden | PF | José | Pendiente | Pendiente |
-| RF-15 | Media | — | Conceder el permiso y ver la posición; negarlo y ver el mensaje informativo | PF | José | Pendiente | Pendiente |
+| RF-10 | Alta | — | Abrir el mapa y navegar por la región piloto comprobando la carga y la respuesta | PF, DE | José | Pasa | Pendiente |
+| RF-11 | Alta | — | Verificar que se muestran las tres categorías: interés, riesgo y referencia | PF | José | Pasa | Pendiente |
+| RF-12 | Media | CB-CON-1 a 5, CB-FPT-1 a 6 | Seleccionar un punto y comprobar que muestra su ficha de detalle | PF | José | Pasa | Pendiente |
+| RF-13 | Media | CB-PTO-1 a 18, CB-FRM-1 a 6, CB-NVP-1 a 2, CB-EDP-1 a 7, CB-FPT-7 a 9 | Registrar un punto nuevo y verificar que aparece en el mapa de otro usuario | PF | José | Pasa | Pendiente |
+| RF-14 | Media | CB-GEO-1 a 10, CB-MAP-5 a 16, CB-FMA-1 a 4 | Aplicar cada filtro y comprobar que los puntos visibles corresponden | PF | José | Pasa | Pendiente |
+| RF-15 | Media | — | Conceder el permiso y ver la posición; negarlo y ver el mensaje informativo | PF | José | Pasa | Pendiente |
 
 ### 4.4 Servicios cercanos — CU-04
 
 | ID | Prioridad | Pruebas CB | Prueba manual (criterio del SRS) | Tipo | Responsable | Resultado | Piloto |
 |---|---|---|---|---|---|---|---|
-| RF-16 | Alta | CB-GEO2-1 a 3, CB-FSV-1 | El 100 % de los establecimientos de la BD de prueba aparecen geolocalizados | PF, IN | José | Pendiente | Pendiente |
-| RF-17 | Alta | CB-GEO-1 a 10, CB-LSV-1 a 4, CB-LST-2 | Buscar una categoría y verificar que solo se listan resultados de ella | PF | José | Pendiente | Pendiente |
-| RF-18 | Media | CB-SRV-1 a 12, CB-FSV-1 a 5 | Abrir la ficha de un servicio y comprobar los campos mostrados | PF | José | Pendiente | Pendiente |
-| RF-19 | Media | CB-GEO-1 a 10, CB-LSV-3, CB-LST-4 | Ordenar por cercanía y verificar el orden de la lista | PF | José | Pendiente | Pendiente |
+| RF-16 | Alta | CB-GEO2-1 a 3, CB-FSV-1 | El 100 % de los establecimientos de la BD de prueba aparecen geolocalizados | PF, IN | José | Pasa | Pendiente |
+| RF-17 | Alta | CB-GEO-1 a 10, CB-LSV-1 a 4, CB-LST-2 | Buscar una categoría y verificar que solo se listan resultados de ella | PF | José | Pasa | Pendiente |
+| RF-18 | Media | CB-SRV-1 a 12, CB-FSV-1 a 5 | Abrir la ficha de un servicio y comprobar los campos mostrados | PF | José | Pasa | Pendiente |
+| RF-19 | Media | CB-GEO-1 a 10, CB-LSV-3, CB-LST-4 | Ordenar por cercanía y verificar el orden de la lista | PF | José | Pasa | Pendiente |
 
 ### 4.5 Chat comunitario — CU-05
 
@@ -117,7 +117,7 @@ la hace y cómo salió.
 | ID | Prioridad | Pruebas CB | Prueba manual (criterio del SRS) | Tipo | Responsable | Resultado | Piloto |
 |---|---|---|---|---|---|---|---|
 | RF-30 | Alta | — | Registrar una alerta con descripción y comprobar su publicación en la zona | PF | Carlos | Pendiente | Pendiente |
-| RF-31 | Alta | CB-ZON-1 a 8, CB-CRI-1 a 3 | Toda zona marcada como riesgo despliega su alerta | PF, DE | Carlos, José | Pendiente | Pendiente |
+| RF-31 | Alta | CB-ZON-1 a 8, CB-CRI-1 a 3 | Toda zona marcada como riesgo despliega su alerta | PF, DE | Carlos, José | Pasa | Pendiente |
 | RF-32 | Media | CB-ZON-5, CB-CRI-1, CB-LEY-1 | Registrar alertas de distinto nivel y comprobar la clasificación mostrada | PF | Carlos | Pendiente | Pendiente |
 | RF-33 | Media | — | Simular cercanía a una zona con alerta y comprobar la notificación | PF | Carlos | Pendiente | Pendiente |
 | RF-34 | Media | — | Confirmar una alerta existente y comprobar que su estado se actualiza | PF | Carlos | Pendiente | Pendiente |
@@ -135,10 +135,10 @@ la hace y cómo salió.
 
 | ID | Prioridad | Pruebas CB | Prueba manual (criterio del SRS) | Tipo | Responsable | Resultado | Piloto |
 |---|---|---|---|---|---|---|---|
-| RF-39 | Alta | CB-TRA-14, CB-CPA-1 | Las paradas registradas aparecen geolocalizadas en el mapa | PF | José | Pendiente | Pendiente |
-| RF-40 | Alta | CB-COB-1 a 4, CB-ZEL-1 a 3, CB-PTR-1 a 5 | Consultar una zona sin transporte y comprobar la alerta de medio alternativo | PF, DE | José | Pendiente | Pendiente |
-| RF-41 | Media | CB-TRA-1 a 13, CB-FPA-1 a 5 | Abrir la ficha de una parada y comprobar el horario | PF | José | Pendiente | Pendiente |
-| RF-42 | Media | CB-HOR-1 a 5, CB-DUR-1 a 4, CB-VHO-1 a 4, CB-VPA-1 a 5, CB-ARM-1 a 4, CB-NPA-1 a 5, CB-AHO-1 a 6, CB-FPA-6 a 7, CB-ACC-6 | Actualizar un horario y comprobar su publicación en la ficha | PF | José | Pendiente | Pendiente |
+| RF-39 | Alta | CB-TRA-14, CB-CPA-1 | Las paradas registradas aparecen geolocalizadas en el mapa | PF | José | Pasa | Pendiente |
+| RF-40 | Alta | CB-COB-1 a 4, CB-ZEL-1 a 3, CB-PTR-1 a 5 | Consultar una zona sin transporte y comprobar la alerta de medio alternativo | PF, DE | José | Pasa | Pendiente |
+| RF-41 | Media | CB-TRA-1 a 13, CB-FPA-1 a 5 | Abrir la ficha de una parada y comprobar el horario | PF | José | Pasa | Pendiente |
+| RF-42 | Media | CB-HOR-1 a 5, CB-DUR-1 a 4, CB-VHO-1 a 4, CB-VPA-1 a 5, CB-ARM-1 a 4, CB-NPA-1 a 5, CB-AHO-1 a 6, CB-FPA-6 a 7, CB-ACC-6 | Actualizar un horario y comprobar su publicación en la ficha | PF | José | Pasa | Pendiente |
 
 ### 4.10 Administración y moderación — CU-10
 

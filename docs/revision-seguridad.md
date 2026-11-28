@@ -40,7 +40,7 @@ punto en la consola de Firebase y en el celular.
 | H8 | Baja | Al borrar una cuenta, `autorNombre` se queda con el nombre real (el SRS pide "Docente anónimo"). Las valoraciones de un lugar borrado se quedan sueltas. El respaldo diario necesita el plan Blaze | SRS 6.2 | S11 | Pendiente (E) | Carlos y Alexis |
 | H9 | Baja | En `reportes`, la regla `get` con `resource == null` deja saber si un reporte **no** existe | RNF-05 | S8 | Aceptado (T-07) | Alexis |
 | H10 | Info | La API key de Firebase es pública a propósito (`EXPO_PUBLIC_*` va dentro de la app). Lo que de verdad protege los datos son las reglas | RNF-01 | S1 | Recomendación | Equipo |
-| H11 | **Alta** | La regla genérica `match /{coleccion}/{id}` también se aplicaba a `usuarios`. Como Firestore junta las reglas con OR, un docente podía crear su perfil con `{ rol: "admin", autorId: <su uid> }` y la genérica lo dejaba pasar aunque el bloque de `usuarios` lo negara | RF-43, RNF-03 | S5 | **Corregido (T-00)**: `usuarios` se agregó a `tieneBloquePropio` | José |
+| H11 | **Alta** | La regla genérica `match /{coleccion}/{id}` también se aplicaba a `usuarios`. Como Firestore junta las reglas con OR, un docente podía crear su perfil con `{ rol: "admin", autorId: <su uid> }` y la genérica lo dejaba pasar aunque el bloque de `usuarios` lo negara | RF-43, RNF-03 | S5 | **Corregido (T-00)**: `usuarios` se agregó a `tieneBloquePropio`. Verificado en Firebase el 27/11 (casos 21 a 23) | José |
 
 ---
 
@@ -256,7 +256,16 @@ Reglas.
 | 18 | UID_B | update | `/avisos/UID_A` | `{"pushToken": "ExponentPushToken[x]"}` | Denegado (A) | Pendiente |
 | 19 | UID_B | update | `/puntos/ID_PUNTO_B` | `{"autorId": "UID_A", ...}` | Denegado cuando se aplique C. **Hoy sí lo deja** | Pendiente |
 | 20 | UID_B | list | `/alertas/ID_ALERTA_A/votos` | — | Denegado según RN-04. **Hoy sí lo deja** (H2) | Pendiente |
-| 21 | UID_A | create | `/usuarios/UID_A` | `{"rol": "admin", "autorId": "UID_A"}` | Denegado (corregido en T-00, H11) | Pendiente |
+| 21 | UID_A | create | `/usuarios/UID_A` | `{"rol": "admin", "autorId": "UID_A"}` | Denegado (corregido en T-00, H11) | Denegado (27/11, ver nota) |
+| 22 | UID_B | update | `/paradas/<de A>` | solo `horarios`, `actualizadoPor` y `actualizado` | Permitido (RF-42) | Permitido (27/11, ver nota) |
+| 23 | UID_B | update | `/paradas/<de A>` | `{"nombre": "otro"}` | Denegado | Denegado (27/11, ver nota) |
+
+**Nota sobre los casos 21 a 23 (27/11/2026):** la consola de Firebase del proyecto ya no trae el
+Área de pruebas de reglas ("Desarrollar y realizar pruebas" solo abre el Emulator Suite). Por eso
+estos casos se probaron contra el Firebase real con un script de Node que crea cuentas de prueba,
+intenta cada operación y luego borra todo. Con las reglas viejas publicadas, el caso 21 salió
+**Permitido** (el hueco H11); después de publicar el `firestore.rules` de main salió **Denegado**.
+Capturas en `docs/evidencias/H11_antes.png`, `H11_despues.png` y `RF-42_reglas_paradas.png`.
 
 Si algún resultado no es el que debe salir, abrir un issue con el título
 `[T-28][S#][caso #] qué pasó` y anotarlo en la sección 6.
