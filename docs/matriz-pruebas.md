@@ -60,7 +60,7 @@ la hace y cómo salió.
 | RF-01 | Media | — | Crear un perfil, cerrar sesión y comprobar que la información se conserva | PF | Carlos | Pendiente | Pendiente |
 | RF-02 | Media | — | Cambiar una preferencia y verificar que las contribuciones anteriores conservan contenido y autoría | PF | Carlos | Pendiente | Pendiente |
 | RF-03 | Baja | — | Cambiar el idioma y comprobar que las etiquetas se actualizan sin reiniciar los datos | PF | Por asignar | Pendiente | Pendiente |
-| RF-04 | Media | CB-MAP-1 a 4, CB-PRF-1 a 4 | Configurar las categorías visibles y comprobar que el mapa las respeta en la siguiente sesión | PF | José (T-05) | Pendiente | Pendiente |
+| RF-04 | Media | CB-MAP-1 a 4, CB-PRF-1 a 6 | Configurar las categorías visibles y comprobar que el mapa las respeta en la siguiente sesión | PF | José (T-05) | Pendiente | Pendiente |
 
 ### 4.2 Registro, autenticación y cuenta — CU-01
 
@@ -250,7 +250,7 @@ la hace y cómo salió.
 | CB-NVP | 1 a 2 | `__tests__/pantallas/nuevo-punto.test.tsx` | RF-13 |
 | CB-EDP | 1 a 7 | `__tests__/pantallas/editar-punto.test.tsx` | RF-13 |
 | CB-MAP | 1 a 16 | `__tests__/lib/mapa.test.ts` | RF-04, RF-14 |
-| CB-PRF / CB-FMA | 1 a 4 / 1 a 4 | `__tests__/pantallas/filtros-mapa.test.tsx` | RF-04, RF-14 |
+| CB-PRF / CB-FMA | 1 a 6 / 1 a 4 | `__tests__/pantallas/filtros-mapa.test.tsx` | RF-04, RF-14 |
 | CB-SRV / CB-GEO2 / CB-LSV | 1 a 12 / 1 a 3 / 1 a 4 | `__tests__/lib/servicios.test.ts` | RF-16 a RF-19 |
 | CB-FSV / CB-LST | 1 a 5 / 1 a 5 | `__tests__/pantallas/servicios.test.tsx` | RF-16 a RF-19 |
 | CB-ZON | 1 a 8 | `__tests__/lib/zonas.test.ts` | RF-31, RF-32 |

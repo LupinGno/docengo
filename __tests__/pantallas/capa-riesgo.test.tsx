@@ -1,4 +1,4 @@
-// Caja blanca: capa de riesgo, leyenda y acciones del mapa (RF-13, RF-30, RF-31, RF-32).
+// Pruebas de la capa de riesgo, la leyenda y el menú al mantener presionado el mapa.
 // Ver docs/pruebas-caja-blanca.md, sección 21.
 import { Alert } from 'react-native';
 import { render, screen } from '@testing-library/react-native';
@@ -76,7 +76,7 @@ describe('acciones del mapa', () => {
     alMantenerPresionado({ latitude: 20.2, longitude: -101.1 });
     expect(botones().map((b) => b.text)).toEqual([
       'Agregar punto',
-      'Reportar alerta aquí',
+      'Reportar alerta',
       'Registrar parada aquí',
       'Cancelar',
     ]);
@@ -96,11 +96,11 @@ describe('acciones del mapa', () => {
     expect(router.push).toHaveBeenCalledWith({ pathname: '/punto/nuevo', params: { lat: '20.2', lon: '-101.1' } });
   });
 
-  test('CB-ACC-3 "Reportar alerta aquí" abre el formulario de alerta con las coordenadas', () => {
+  test('CB-ACC-3 "Reportar alerta" abre la pestaña de Alertas, donde está el formulario', () => {
     jest.spyOn(Alert, 'alert');
     alMantenerPresionado({ latitude: 20.2, longitude: -101.1 });
     botones()[1].onPress?.();
-    expect(router.push).toHaveBeenCalledWith({ pathname: '/alerta/nueva', params: { lat: '20.2', lon: '-101.1' } });
+    expect(router.push).toHaveBeenCalledWith('/alertas');
   });
 
   test('CB-ACC-4 abrir una zona de punto lleva a su ficha', () => {
